@@ -166,6 +166,12 @@
   .photo .cap { text-align:center; font-family: 'Dancing Script', cursive; font-size: 1.3rem; color: var(--text-soft); margin-top: 8px; }
   .photo .heart-tag { position: absolute; top: -12px; right: -8px; color: var(--pink-deep); animation: softPulse 2.4s ease-in-out infinite; }
   @keyframes softPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+  .gallery .photo:nth-child(n+6) { display: none; }
+  .gallery.expanded .photo:nth-child(n+6) { display: block; animation: fadeUp .6s ease both; }
+  .more-wrap { text-align: center; margin-top: 26px; }
+  .more-btn { padding: 13px 30px; border: 1px solid var(--pink); border-radius: 40px; background: var(--white); color: var(--pink-deep); font-family: 'Quicksand', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 18px rgba(236,155,176,.28); transition: transform .2s, background .2s; }
+  .more-btn:hover { transform: translateY(-2px); background: var(--pink-light); }
+  .more-btn:active { transform: translateY(0); }
 
   /* ====== COUNTDOWN ====== */
   .countdown { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
@@ -267,7 +273,7 @@
 
   <section class="reveal">
     <h2 class="section-title">Mis fotitos<span class="sub">un añito de amor</span></h2>
-    <div class="gallery">
+    <div class="gallery" id="gallery">
       <div class="photo feature">
         <span class="heart-tag">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.7-4.35-9.33-8.07C.9 10.2 1.6 6.6 4.6 5.4c2-.8 4 .1 5 1.6 1-1.5 3-2.4 5-1.6 3 1.2 3.7 4.8 1.93 7.53C18.7 16.65 12 21 12 21z"/></svg>
@@ -315,6 +321,9 @@
         <img alt="Pili en el cochecito" src="assets/pili-cochecito.jpeg" />
         <p class="cap">De paseo</p>
       </div>
+    </div>
+    <div class="more-wrap">
+      <button class="more-btn" id="moreBtn" onclick="toggleGallery()">Ver más fotos 💕</button>
     </div>
   </section>
 
@@ -426,6 +435,15 @@
     if (bgm.paused) { bgm.play(); setPlayingUI(true); }
     else { bgm.pause(); setPlayingUI(false); }
   });
+
+  /* ====== GALERÍA VER MÁS ====== */
+  function toggleGallery() {
+    var g = document.getElementById("gallery");
+    var b = document.getElementById("moreBtn");
+    var open = g.classList.toggle("expanded");
+    b.textContent = open ? "Ver menos" : "Ver más fotos 💕";
+    if (!open) g.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   /* ====== CONTADOR ====== */
   function updateCountdown() {
