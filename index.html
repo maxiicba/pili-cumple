@@ -157,12 +157,12 @@
   /* ====== GALERÍA POLAROID ====== */
   .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .photo { background: var(--white); padding: 10px 10px 16px; border-radius: 6px; box-shadow: 0 14px 28px rgba(236, 155, 176, .3); transition: transform .4s ease, box-shadow .4s ease; position: relative; }
-  .photo:nth-child(1) { grid-column: 1 / -1; transform: rotate(-2deg); }
-  .photo:nth-child(2) { transform: rotate(2deg); }
-  .photo:nth-child(3) { transform: rotate(-3deg); }
+  .photo:nth-child(odd) { transform: rotate(-2deg); }
+  .photo:nth-child(even) { transform: rotate(2deg); }
+  .photo.feature { grid-column: 1 / -1; transform: rotate(-1deg); }
   .photo:hover { transform: rotate(0deg) scale(1.04); box-shadow: 0 20px 38px rgba(236, 155, 176, .45); z-index: 2; }
-  .photo img { width: 100%; height: 260px; object-fit: cover; border-radius: 3px; display: block; }
-  .photo:nth-child(1) img { height: 340px; }
+  .photo img { width: 100%; height: 230px; object-fit: cover; border-radius: 3px; display: block; }
+  .photo.feature img { height: 340px; }
   .photo .cap { text-align:center; font-family: 'Dancing Script', cursive; font-size: 1.3rem; color: var(--text-soft); margin-top: 8px; }
   .photo .heart-tag { position: absolute; top: -12px; right: -8px; color: var(--pink-deep); animation: softPulse 2.4s ease-in-out infinite; }
   @keyframes softPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
@@ -208,10 +208,10 @@
 <!-- ===== PORTADA ===== -->
 <div class="cover" id="cover">
   <div class="cover-floaties" aria-hidden="true">
-    <img class="cf cf1" src="assets/pili-sonriendo.jpeg" alt="" />
-    <img class="cf cf2" src="assets/pili-gorrito.jpeg" alt="" />
-    <img class="cf cf3" src="assets/pili-conejitos.jpeg" alt="" />
-    <img class="cf cf4" src="assets/pili-sonriendo.jpeg" alt="" />
+    <img class="cf cf1" src="assets/pili-risa.jpeg" alt="" />
+    <img class="cf cf2" src="assets/pili-lentes.jpeg" alt="" />
+    <img class="cf cf3" src="assets/pili-rio.jpeg" alt="" />
+    <img class="cf cf4" src="assets/pili-mono.jpeg" alt="" />
   </div>
   <div class="cover-inner">
     <img class="env" src="assets/bunny.png" alt="Conejita" />
@@ -250,10 +250,10 @@
 <!-- ===== FOTOS FLOTANTES DE PILI ===== -->
 <div class="floaties" aria-hidden="true">
   <img class="floatie f1" src="assets/pili-sonriendo.jpeg" alt="" />
-  <img class="floatie f2" src="assets/pili-gorrito.jpeg" alt="" />
-  <img class="floatie f3" src="assets/pili-conejitos.jpeg" alt="" />
-  <img class="floatie f4" src="assets/pili-sonriendo.jpeg" alt="" />
-  <img class="floatie f5" src="assets/pili-gorrito.jpeg" alt="" />
+  <img class="floatie f2" src="assets/pili-flor.jpeg" alt="" />
+  <img class="floatie f3" src="assets/pili-bandana.jpeg" alt="" />
+  <img class="floatie f4" src="assets/pili-mamadera.jpeg" alt="" />
+  <img class="floatie f5" src="assets/pili-cochecito.jpeg" alt="" />
   <img class="floatie f6" src="assets/pili-conejitos.jpeg" alt="" />
 </div>
 
@@ -268,12 +268,32 @@
   <section class="reveal">
     <h2 class="section-title">Mis fotitos<span class="sub">un añito de amor</span></h2>
     <div class="gallery">
-      <div class="photo">
+      <div class="photo feature">
         <span class="heart-tag">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.7-4.35-9.33-8.07C.9 10.2 1.6 6.6 4.6 5.4c2-.8 4 .1 5 1.6 1-1.5 3-2.4 5-1.6 3 1.2 3.7 4.8 1.93 7.53C18.7 16.65 12 21 12 21z"/></svg>
         </span>
         <img alt="Pili sonriendo" src="assets/pili-sonriendo.jpeg" />
         <p class="cap">¡Mi mejor sonrisa!</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili riendo" src="assets/pili-risa.jpeg" />
+        <p class="cap">Pura alegría</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili con lentes de corazón" src="assets/pili-lentes.jpeg" />
+        <p class="cap">Estilo propio</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili en el río" src="assets/pili-rio.jpeg" />
+        <p class="cap">Paseos con papá</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili exploradora" src="assets/pili-flor.jpeg" />
+        <p class="cap">Exploradora</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili con moñito" src="assets/pili-mono.jpeg" />
+        <p class="cap">Mi moñito</p>
       </div>
       <div class="photo">
         <img alt="Pili con gorrito rosa" src="assets/pili-gorrito.jpeg" />
@@ -282,6 +302,18 @@
       <div class="photo">
         <img alt="Pili con buzo de conejitos" src="assets/pili-conejitos.jpeg" />
         <p class="cap">Mi pose</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili con la mamadera" src="assets/pili-mamadera.jpeg" />
+        <p class="cap">Mi mamadera</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili con bandana de conejitos" src="assets/pili-bandana.jpeg" />
+        <p class="cap">Carita curiosa</p>
+      </div>
+      <div class="photo">
+        <img alt="Pili en el cochecito" src="assets/pili-cochecito.jpeg" />
+        <p class="cap">De paseo</p>
       </div>
     </div>
   </section>
