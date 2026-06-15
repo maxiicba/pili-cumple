@@ -129,6 +129,7 @@
   .hero h1 { font-family: 'Dancing Script', cursive; font-size: clamp(4.5rem, 26vw, 9rem); line-height: .9; font-weight: 700; margin: 2px 0; }
   .hero .name { color: var(--pink-deep); text-shadow: 0 6px 18px rgba(236,155,176,.35); }
   .bunny-frame { position: fixed; top: 6px; left: 8px; width: clamp(88px, 20vw, 150px); z-index: 30; pointer-events: none; }
+  .bunny-frame.br { top: auto; left: auto; right: 8px; bottom: 8px; transform: scaleX(-1); }
   .bunny { width: 100%; height: auto; display: block; animation: gentleFloat 5s ease-in-out infinite; filter: drop-shadow(0 14px 18px rgba(236, 155, 176, .5)); }
   .sparkle { position: absolute; color: var(--gold); animation: twinkle 2.6s ease-in-out infinite; }
   .sparkle.s1 { top: 4%; left: -8%; animation-delay: 0s; }
@@ -225,6 +226,11 @@
   <span class="sparkle s2"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg></span>
   <span class="sparkle s3"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg></span>
   <img class="bunny" alt="Conejita bailarina" src="assets/bunny.png" />
+</div>
+<div class="bunny-frame br" aria-hidden="true">
+  <span class="sparkle s1"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg></span>
+  <span class="sparkle s2"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg></span>
+  <img class="bunny" alt="" src="assets/bunny.png" />
 </div>
 
 <!-- ===== BOTÓN MÚSICA ===== -->
