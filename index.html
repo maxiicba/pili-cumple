@@ -60,6 +60,20 @@
   .open-btn:active { transform: scale(.96); }
   @keyframes pulseBtn { 0%,100% { transform: scale(1); box-shadow: 0 12px 26px rgba(236,155,176,.55); } 50% { transform: scale(1.06); box-shadow: 0 16px 32px rgba(236,155,176,.7); } }
   .cover .hint { margin-top: 14px; font-size: .82rem; color: var(--text-soft); letter-spacing: .08em; }
+  .cover-inner { position: relative; z-index: 2; max-width: 440px; }
+  .cover .phrase { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.18rem; line-height: 1.55; color: var(--text); margin: 4px auto 22px; max-width: 360px; }
+  .cover-floaties { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+  .cf { position: absolute; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 10px 24px rgba(236,155,176,.5); opacity: .9; will-change: transform; }
+  .cf1 { width: 104px; height: 104px; top: 9%;  left: 6%;  animation: roamA 24s ease-in-out infinite; }
+  .cf2 { width: 122px; height: 122px; top: 13%; right: 7%; animation: roamB 28s ease-in-out infinite; }
+  .cf3 { width: 92px;  height: 92px;  bottom: 13%; left: 8%; animation: roamC 26s ease-in-out infinite; }
+  .cf4 { width: 112px; height: 112px; bottom: 8%; right: 6%; animation: roamA 30s ease-in-out infinite reverse; }
+  @media (max-width: 480px) {
+    .cf1 { width: 62px; height: 62px; }
+    .cf2 { width: 70px; height: 70px; }
+    .cf3 { width: 56px; height: 56px; }
+    .cf4 { width: 64px; height: 64px; }
+  }
 
   /* ====== DECORACIÓN FLOTANTE ====== */
   .decor-layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
@@ -186,11 +200,20 @@
 
 <!-- ===== PORTADA ===== -->
 <div class="cover" id="cover">
-  <img class="env" src="assets/bunny.png" alt="Conejita" />
-  <p class="pre">Mi primer añito</p>
-  <div class="nm">Pili</div>
-  <button class="open-btn" id="openBtn">Abrir invitación 🎀</button>
-  <p class="hint">con música ♫</p>
+  <div class="cover-floaties" aria-hidden="true">
+    <img class="cf cf1" src="assets/pili-sonriendo.jpeg" alt="" />
+    <img class="cf cf2" src="assets/pili-gorrito.jpeg" alt="" />
+    <img class="cf cf3" src="assets/pili-conejitos.jpeg" alt="" />
+    <img class="cf cf4" src="assets/pili-sonriendo.jpeg" alt="" />
+  </div>
+  <div class="cover-inner">
+    <img class="env" src="assets/bunny.png" alt="Conejita" />
+    <p class="pre">Mi primer añito</p>
+    <div class="nm">Pili</div>
+    <p class="phrase">Ha sido un año de grandes descubrimientos, sonrisas y mucho aprendizaje. ¡Te espero para soplar mi primera velita, llena de magia y alegría!</p>
+    <button class="open-btn" id="openBtn">Abrir invitación 🎀</button>
+    <p class="hint">con música ♫</p>
+  </div>
 </div>
 
 <!-- ===== AUDIO ===== -->
