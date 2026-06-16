@@ -67,8 +67,9 @@
   @keyframes roamB { 0%,100%{transform:translate(0,0) rotate(0)} 25%{transform:translate(-50px,40px) rotate(-7deg)} 50%{transform:translate(30px,-60px) rotate(6deg)} 75%{transform:translate(-20px,30px) rotate(-4deg)} }
   @keyframes roamC { 0%,100%{transform:translate(0,0) rotate(0)} 30%{transform:translate(45px,-50px) rotate(7deg)} 60%{transform:translate(-35px,-90px) rotate(-8deg)} 85%{transform:translate(20px,-30px) rotate(4deg)} }
   @media (max-width: 480px) {
-    .floatie.f2, .floatie.f6 { display: none; }
-    .floatie { opacity: .8; }
+    /* Menos fotos flotantes y más tenues para que no compitan con el texto */
+    .floatie.f2, .floatie.f4, .floatie.f5, .floatie.f6 { display: none; }
+    .floatie { opacity: .5; }
   }
 
   /* ====== BOTÓN MÚSICA ====== */
@@ -183,8 +184,8 @@
   .btn:hover { transform: translateY(-2px); background: #e487a0; }
   .btn:active { transform: translateY(0); }
 
-  .footer { text-align: center; margin-top: 52px; font-family: 'Dancing Script', cursive; font-size: 1.8rem; color: var(--text-soft); }
-  .footer .small { display:block; font-family:'Quicksand',sans-serif; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; margin-top:6px; }
+  .footer { text-align: center; margin-top: 52px; font-family: 'Dancing Script', cursive; font-size: 2rem; color: var(--pink-deep); position: relative; z-index: 10; text-shadow: 0 1px 3px rgba(255,255,255,.9), 0 0 14px rgba(255,250,251,.7); }
+  .footer .small { display:block; font-family:'Quicksand',sans-serif; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; margin-top:6px; color: var(--text); text-shadow: 0 1px 2px rgba(255,255,255,.95); }
 
   /* ====== MODAL DE CONFIRMACIÓN ====== */
   .modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 24px;
@@ -212,8 +213,12 @@
 
   /* ====== AJUSTES MOBILE ====== */
   @media (max-width: 600px) {
-    .wrap { padding: 32px 16px 48px; }
+    .wrap { padding: 32px 16px 120px; }
     section { margin-top: 48px; }
+
+    /* Las conejitas de las esquinas más chicas y detrás del texto, para que no lo tapen */
+    .bunny-frame { width: clamp(64px, 16vw, 96px); z-index: 1; opacity: .9; }
+    .footer { margin-top: 44px; font-size: 1.75rem; }
 
     /* La galería en una sola columna se ve más prolija en pantallas chicas */
     .gallery { grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -508,6 +513,14 @@
   /* ====== MÚSICA ====== */
   var bgm = document.getElementById("bgm");
   var musicBtn = document.getElementById("musicBtn");
+  var MUSIC_KEY = "pili_musica"; // guardamos la preferencia: "off" = el usuario la pausó
+
+  function musicaApagada() {
+    try { return localStorage.getItem(MUSIC_KEY) === "off"; } catch (e) { return false; }
+  }
+  function recordarPreferencia(apagada) {
+    try { localStorage.setItem(MUSIC_KEY, apagada ? "off" : "on"); } catch (e) {}
+  }
 
   function setPlayingUI(on) {
     if (on) musicBtn.classList.add("playing");
@@ -528,22 +541,26 @@
     });
   }
 
-  // Como venimos de "Abrir invitación", intentamos arrancar la música al entrar.
-  startMusic().catch(function () {
-    // Si el navegador bloquea el autoplay, arranca con el primer toque/scroll.
+  // Solo arranca sola si el usuario NO la pausó antes (lo recordamos en localStorage).
+  if (musicaApagada()) {
     setPlayingUI(false);
-    function arrancar() {
-      if (bgm.paused) startMusic().catch(function () {});
-      window.removeEventListener("pointerdown", arrancar);
-      window.removeEventListener("scroll", arrancar);
-    }
-    window.addEventListener("pointerdown", arrancar);
-    window.addEventListener("scroll", arrancar, { passive: true });
-  });
+  } else {
+    startMusic().catch(function () {
+      // Si el navegador bloquea el autoplay, arranca con el primer toque/scroll.
+      setPlayingUI(false);
+      function arrancar() {
+        if (!musicaApagada() && bgm.paused) startMusic().catch(function () {});
+        window.removeEventListener("pointerdown", arrancar);
+        window.removeEventListener("scroll", arrancar);
+      }
+      window.addEventListener("pointerdown", arrancar);
+      window.addEventListener("scroll", arrancar, { passive: true });
+    });
+  }
 
   musicBtn.addEventListener("click", function () {
-    if (bgm.paused) { bgm.play(); setPlayingUI(true); }
-    else { bgm.pause(); setPlayingUI(false); }
+    if (bgm.paused) { bgm.play(); setPlayingUI(true); recordarPreferencia(false); }
+    else { bgm.pause(); setPlayingUI(false); recordarPreferencia(true); }
   });
 
   /* ====== MESA DE REGALOS ====== */

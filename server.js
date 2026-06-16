@@ -16,9 +16,31 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "pilar2026";
 const SESSION_SECRET =
   process.env.SESSION_SECRET || crypto.randomBytes(16).toString("hex");
 
+// Aviso en arranque si quedaron valores por defecto (inseguros en producción).
+if (!process.env.ADMIN_PASSWORD)
+  console.warn("[seguridad] ADMIN_PASSWORD no está seteada: usando contraseña por defecto. Configurala en producción.");
+if (!process.env.SESSION_SECRET)
+  console.warn("[seguridad] SESSION_SECRET no está seteada: las sesiones admin se invalidarán al reiniciar.");
+
+// Comparación de tiempo constante: evita filtrar info por timing al comparar secretos.
+function safeEqual(a, b) {
+  const ba = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  if (ba.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ba, bb);
+}
+
 const app = express();
 // En Railway/hosting con proxy: necesario para que el rate-limit lea bien la IP real.
 app.set("trust proxy", 1);
+// Headers de seguridad básicos (sin CSP estricto para no romper Maps/Spotify/inline).
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+  next();
+});
 app.use(express.json());
 app.use(cookieParser());
 
@@ -40,13 +62,20 @@ const writeLimiter = rateLimit({
   message: { error: "Demasiados envíos seguidos. Esperá un momento y reintentá 🌸" },
 });
 
-// Subida en memoria, solo imágenes, hasta 10 MB.
+// Subida en memoria, solo imágenes de formatos seguros, hasta 10 MB.
+// Whitelist explícita: NO se permite SVG (puede contener JavaScript embebido).
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
   fileFilter: (req, file, cb) => {
-    if (/^image\//.test(file.mimetype)) cb(null, true);
-    else cb(new Error("Solo se permiten imágenes"));
+    if (ALLOWED_IMAGE_TYPES.has(file.mimetype)) cb(null, true);
+    else cb(new Error("Formato no permitido. Solo JPG, PNG, WebP o GIF."));
   },
 });
 
@@ -55,16 +84,25 @@ function makeToken() {
   return crypto.createHmac("sha256", SESSION_SECRET).update("admin-ok").digest("hex");
 }
 function isAdmin(req) {
-  return req.cookies && req.cookies.admin === makeToken();
+  return !!(req.cookies && req.cookies.admin && safeEqual(req.cookies.admin, makeToken()));
 }
 function requireAdmin(req, res, next) {
   if (isAdmin(req)) return next();
   res.status(401).json({ error: "No autorizado" });
 }
 
-app.post("/api/admin/login", (req, res) => {
+// Anti fuerza-bruta: pocos intentos de login por IP.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiados intentos. Esperá unos minutos e intentá de nuevo." },
+});
+
+app.post("/api/admin/login", loginLimiter, (req, res) => {
   const { password } = req.body || {};
-  if (password && password === ADMIN_PASSWORD) {
+  if (password && safeEqual(password, ADMIN_PASSWORD)) {
     res.cookie("admin", makeToken(), {
       httpOnly: true,
       sameSite: "lax",
