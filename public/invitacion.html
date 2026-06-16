@@ -598,12 +598,23 @@
       var nombre = document.getElementById("nombre");
       if (nombre) setTimeout(function () { nombre.focus({ preventScroll: true }); }, 700);
     });
-    // Ocultar el botón cuando el formulario ya está a la vista (no tapa nada).
+
+    // El botón aparece recién después de scrollear (no tapa la portada/inicio)
+    // y se oculta cuando el formulario de RSVP ya está a la vista.
+    var formularioVisible = false;
+    function actualizarFab() {
+      var scrolleoSuficiente = window.scrollY > 500;
+      fabRsvp.classList.toggle("hide", !scrolleoSuficiente || formularioVisible);
+    }
+    fabRsvp.classList.add("hide"); // arranca oculto
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
-        fabRsvp.classList.toggle("hide", entries[0].isIntersecting);
+        formularioVisible = entries[0].isIntersecting;
+        actualizarFab();
       }, { threshold: 0.25 }).observe(rsvpSection);
     }
+    window.addEventListener("scroll", actualizarFab, { passive: true });
+    actualizarFab();
   }
 
   /* ====== MESA DE REGALOS ====== */
