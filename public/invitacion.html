@@ -86,6 +86,26 @@
   .music-btn.playing .disc { animation: spin 3s linear infinite; transform-origin: center; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ====== BOTÓN FLOTANTE: confirmar asistencia ====== */
+  .fab-rsvp {
+    position: fixed; right: 16px; bottom: 18px; z-index: 41;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 20px; border: none; border-radius: 40px; cursor: pointer;
+    background: var(--pink-deep); color: #fff;
+    font-family: 'Quicksand', sans-serif; font-size: .98rem; font-weight: 700; letter-spacing: .02em;
+    box-shadow: 0 10px 24px rgba(236,155,176,.6);
+    transition: transform .25s ease, opacity .35s ease, visibility .35s ease;
+    animation: fabPulse 2.6s ease-in-out infinite;
+  }
+  .fab-rsvp svg { width: 20px; height: 20px; }
+  .fab-rsvp:active { transform: scale(.95); }
+  .fab-rsvp.hide { opacity: 0; visibility: hidden; transform: translateY(12px); pointer-events: none; }
+  @keyframes fabPulse { 0%,100% { box-shadow: 0 10px 24px rgba(236,155,176,.6); } 50% { box-shadow: 0 14px 30px rgba(236,155,176,.85); } }
+  @media (max-width: 480px) {
+    .fab-rsvp { padding: 12px 16px; font-size: .9rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .fab-rsvp { animation: none; } }
+
   .wrap { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 40px 20px 56px; }
 
   /* ====== HERO ====== */
@@ -278,6 +298,12 @@
   <svg class="disc" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
 </button>
 
+<!-- ===== BOTÓN FLOTANTE: CONFIRMAR ASISTENCIA ===== -->
+<button class="fab-rsvp" id="fabRsvp" title="Confirmar asistencia" aria-label="Confirmar asistencia">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+  Confirmar asistencia
+</button>
+
 <!-- ===== DECORACIÓN ===== -->
 <div class="decor-layer" id="decor"></div>
 
@@ -457,7 +483,7 @@
     </div>
   </section>
 
-  <section class="reveal">
+  <section class="reveal" id="rsvp" style="scroll-margin-top: 24px;">
     <h2 class="section-title">Confirmá tu asistencia<span class="sub">¡te espero!</span></h2>
     <div class="form-card">
       <label for="nombre">Tu nombre</label>
@@ -562,6 +588,23 @@
     if (bgm.paused) { bgm.play(); setPlayingUI(true); recordarPreferencia(false); }
     else { bgm.pause(); setPlayingUI(false); recordarPreferencia(true); }
   });
+
+  /* ====== BOTÓN FLOTANTE: CONFIRMAR ASISTENCIA ====== */
+  var fabRsvp = document.getElementById("fabRsvp");
+  var rsvpSection = document.getElementById("rsvp");
+  if (fabRsvp && rsvpSection) {
+    fabRsvp.addEventListener("click", function () {
+      rsvpSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      var nombre = document.getElementById("nombre");
+      if (nombre) setTimeout(function () { nombre.focus({ preventScroll: true }); }, 700);
+    });
+    // Ocultar el botón cuando el formulario ya está a la vista (no tapa nada).
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        fabRsvp.classList.toggle("hide", entries[0].isIntersecting);
+      }, { threshold: 0.25 }).observe(rsvpSection);
+    }
+  }
 
   /* ====== MESA DE REGALOS ====== */
   function copiarAlias() {
