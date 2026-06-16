@@ -120,13 +120,21 @@
 
 <script>
   function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
-  var fotos = [], idx = 0;
+  var fotos = [], idx = 0, firmaActual = "";
+  function firma(list){ return list.map(function(p){ return p.id; }).join(","); }
 
   async function cargar(){
     try {
-      var r = await fetch("/api/photos"); fotos = await r.json();
+      var r = await fetch("/api/photos"); var data = await r.json();
       document.getElementById("skeleton").style.display = "none";
-      if (!fotos.length){ document.getElementById("empty").style.display = "block"; return; }
+      var nuevaFirma = firma(data);
+      // Si no cambió nada, o el lightbox está abierto, no re-renderizamos (evita parpadeos).
+      if (nuevaFirma === firmaActual) return;
+      if (document.getElementById("lb").classList.contains("open")) return;
+      firmaActual = nuevaFirma;
+      fotos = data;
+      if (!fotos.length){ document.getElementById("empty").style.display = "block"; document.getElementById("masonry").innerHTML = ""; document.getElementById("count").textContent = ""; return; }
+      document.getElementById("empty").style.display = "none";
       document.getElementById("count").textContent = fotos.length + (fotos.length === 1 ? " recuerdo compartido" : " recuerdos compartidos");
       var m = document.getElementById("masonry");
       m.innerHTML = fotos.map(function(p, i){
@@ -137,9 +145,13 @@
       }).join("");
     } catch(e){
       document.getElementById("skeleton").style.display = "none";
-      document.getElementById("empty").style.display = "block";
+      if (!fotos.length) document.getElementById("empty").style.display = "block";
     }
   }
+
+  // Actualización automática: ideal para proyectar en el salón mientras suben fotos.
+  setInterval(function(){ if (!document.hidden) cargar(); }, 15000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 
   function abrirLb(i){
     idx = i; var p = fotos[i];
