@@ -191,12 +191,31 @@ app.delete("/api/admin/rsvps/:id", requireAdmin, async (req, res) => {
   }
 });
 
-/* ====== PÁGINAS Y ARCHIVOS ESTÁTICOS ====== */
-app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
-app.get("/muro", (req, res) => res.sendFile(path.join(__dirname, "muro.html")));
-app.use(express.static(__dirname, { extensions: ["html"] }));
+/* ====== ARCHIVOS ESTÁTICOS Y PÁGINAS ====== */
+// Solo se sirve la carpeta public/: index.html, muro.html, admin.html,
+// fotos.html, frases.html y assets/. El código del servidor queda fuera.
+// `extensions:["html"]` permite /muro, /admin, /fotos, /frases sin escribir el .html.
+const PUBLIC_DIR = path.join(__dirname, "public");
+app.use(
+  express.static(PUBLIC_DIR, {
+    extensions: ["html"],
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".html")) {
+        // El HTML siempre fresco; los datos llegan por la API.
+        res.setHeader("Cache-Control", "no-cache");
+      } else {
+        // Fotos, música, fuentes locales, favicon: cache largo.
+        res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+      }
+    },
+  })
+);
 
-// Manejo de errores de multer (tamaño, tipo de archivo)
+// 404 de la API en JSON; cualquier otra ruta cae a la invitación.
+app.use("/api", (req, res) => res.status(404).json({ error: "No encontrado" }));
+app.use((req, res) => res.sendFile(path.join(PUBLIC_DIR, "index.html")));
+
+// Manejo de errores (multer: tamaño / tipo de archivo, etc.)
 app.use((err, req, res, next) => {
   if (err) return res.status(400).json({ error: err.message || "Error" });
   next();

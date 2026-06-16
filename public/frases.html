@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Frases para Pilar 🎀</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#fdeef0; --bg-soft:#fbe3e8; --card:#fff7f8; --text:#8a5a64; --text-soft:#b08a92;
+    --pink:#f4b8c8; --pink-deep:#ec9bb0; --pink-light:#fad6de; --white:#fffafb;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Quicksand',sans-serif; color:var(--text); background:linear-gradient(180deg,var(--bg) 0%,var(--bg-soft) 55%,#f7d9e1 100%); min-height:100vh; padding-bottom:60px; }
+  h1 { font-family:'Cormorant Garamond',serif; }
+
+  .top { text-align:center; padding:46px 20px 6px; }
+  .top .script { font-family:'Dancing Script',cursive; font-size:clamp(2.8rem,13vw,4.4rem); color:var(--pink-deep); line-height:1; text-shadow:0 4px 14px rgba(236,155,176,.3); }
+  .top p { color:var(--text-soft); margin-top:6px; font-size:1.02rem; }
+  .nav { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+  .nav a { text-decoration:none; font-weight:700; font-size:.92rem; padding:9px 18px; border-radius:30px; border:1px solid var(--pink); color:var(--pink-deep); background:var(--white); transition:transform .15s, background .15s; }
+  .nav a:hover { transform:translateY(-2px); background:var(--pink-light); }
+  .nav a.active { background:var(--pink-deep); color:#fff; border-color:var(--pink-deep); }
+
+  .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
+  .count { text-align:center; color:var(--text-soft); margin:22px 0 16px; font-size:.9rem; letter-spacing:.08em; text-transform:uppercase; }
+
+  .notes { columns: 3 260px; column-gap: 18px; }
+  .note { break-inside:avoid; margin:0 0 18px; padding:22px 22px 18px; border-radius:18px; position:relative;
+    box-shadow:0 10px 26px rgba(236,155,176,.22); transform:rotate(var(--rot,0deg)); transition:transform .25s ease, box-shadow .25s ease; }
+  .note:hover { transform:rotate(0deg) translateY(-4px); box-shadow:0 18px 38px rgba(236,155,176,.4); }
+  .note::before { content:""; position:absolute; top:-9px; left:50%; transform:translateX(-50%); width:46px; height:18px;
+    background:rgba(255,255,255,.55); border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,.08); }
+  .note .quote { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.22rem; line-height:1.5; color:#7a4a54; }
+  .note .by { display:block; font-family:'Dancing Script',cursive; font-weight:700; font-size:1.5rem; margin-top:12px; text-align:right; }
+  .note .date { display:block; text-align:right; font-size:.72rem; color:var(--text-soft); margin-top:2px; }
+  /* paletas alternadas */
+  .note.c0 { background:linear-gradient(160deg,#fff6f8,#ffe6ec); } .note.c0 .by{ color:#e07a96; }
+  .note.c1 { background:linear-gradient(160deg,#fff8f0,#ffeede); } .note.c1 .by{ color:#d99a55; }
+  .note.c2 { background:linear-gradient(160deg,#f6f8ff,#e7edff); } .note.c2 .by{ color:#7e8fd6; }
+  .note.c3 { background:linear-gradient(160deg,#f3fbf6,#dff3e8); } .note.c3 .by{ color:#5aa97e; }
+  .note.c4 { background:linear-gradient(160deg,#fdf4ff,#f3e2fb); } .note.c4 .by{ color:#b573d6; }
+
+  .empty { text-align:center; color:var(--text-soft); padding:60px 20px; font-size:1.05rem; }
+  .empty a { color:var(--pink-deep); font-weight:700; }
+
+  @media (max-width:600px){
+    .top { padding:34px 16px 6px; }
+    .wrap { padding:0 14px; }
+    .notes { columns: 1; }
+    .note { padding:20px 20px 16px; }
+    .note .quote { font-size:1.15rem; }
+    .nav a { font-size:.85rem; padding:8px 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="script">Frases para Pili</div>
+    <p>Mensajes con cariño de toda la familia 💌</p>
+    <nav class="nav">
+      <a href="/">Invitación</a>
+      <a href="/fotos">📸 Fotos</a>
+      <a href="/frases" class="active">💌 Frases</a>
+      <a href="/muro">＋ Escribir</a>
+    </nav>
+  </div>
+
+  <div class="wrap">
+    <div class="count" id="count"></div>
+    <div class="notes" id="notes"></div>
+    <div class="empty" id="empty" style="display:none">
+      Todavía no hay mensajes 🌸<br /><a href="/muro">¡Dejá la primera frase para Pilar!</a>
+    </div>
+  </div>
+
+<script>
+  function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  function fdate(s){ try { return new Date(s).toLocaleDateString("es-AR",{day:"2-digit",month:"long"}); } catch(e){ return ""; } }
+  var rots = ["-2deg","1.5deg","-1deg","2deg","-1.5deg","1deg"];
+
+  async function cargar(){
+    try {
+      var r = await fetch("/api/messages"); var list = await r.json();
+      if (!list.length){ document.getElementById("empty").style.display = "block"; return; }
+      document.getElementById("count").textContent = list.length + (list.length === 1 ? " mensaje" : " mensajes");
+      document.getElementById("notes").innerHTML = list.map(function(m, i){
+        return '<div class="note c'+(i%5)+'" style="--rot:'+rots[i%rots.length]+'">'+
+          '<div class="quote">"'+esc(m.message)+'"</div>'+
+          '<span class="by">— '+esc(m.name)+'</span>'+
+          '<span class="date">'+fdate(m.created_at)+'</span></div>';
+      }).join("");
+    } catch(e){ document.getElementById("empty").style.display = "block"; }
+  }
+  cargar();
+</script>
+</body>
+</html>

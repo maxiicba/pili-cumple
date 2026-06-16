@@ -47,6 +47,16 @@
   .note .q { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.12rem; color:var(--text); }
   .note .by { display:block; font-family:'Dancing Script',cursive; color:var(--pink-deep); font-weight:700; font-size:1.3rem; margin-top:8px; }
   .empty { text-align:center; color:var(--text-soft); padding:18px; }
+
+  .see-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:22px; }
+  @media (max-width:480px){ .see-grid { grid-template-columns:1fr; } }
+  .see-card { display:block; text-decoration:none; text-align:center; padding:24px 18px; border-radius:22px;
+    background:linear-gradient(160deg,var(--card),#ffe9ef); border:1px solid var(--pink-light);
+    box-shadow:0 10px 26px rgba(236,155,176,.22); transition:transform .2s ease, box-shadow .2s ease; }
+  .see-card:hover { transform:translateY(-4px); box-shadow:0 18px 38px rgba(236,155,176,.4); }
+  .see-ico { font-size:2.4rem; }
+  .see-t { font-family:'Dancing Script',cursive; font-weight:700; font-size:1.7rem; color:var(--pink-deep); margin-top:6px; line-height:1; }
+  .see-d { color:var(--text-soft); font-size:.88rem; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -85,18 +95,18 @@
       <div class="msg" id="msgMsg"></div>
     </div>
 
-    <!-- GALERÍA -->
-    <div class="panel">
-      <h2>Fotos compartidas</h2>
-      <div class="gallery" id="gallery"></div>
-      <div class="empty" id="galEmpty">Todavía no hay fotos. ¡Sé el primero! 💕</div>
-    </div>
-
-    <!-- MENSAJES -->
-    <div class="panel">
-      <h2>Mensajes para Pilar</h2>
-      <div class="notes" id="notes"></div>
-      <div class="empty" id="notesEmpty">Todavía no hay mensajes. ¡Dejá el primero! 💕</div>
+    <!-- VER LO QUE YA SE COMPARTIÓ -->
+    <div class="see-grid">
+      <a class="see-card" href="/fotos">
+        <div class="see-ico">📸</div>
+        <div class="see-t">Ver la galería</div>
+        <div class="see-d">Todas las fotos compartidas</div>
+      </a>
+      <a class="see-card" href="/frases">
+        <div class="see-ico">💌</div>
+        <div class="see-t">Ver las frases</div>
+        <div class="see-d">Los mensajes para Pilar</div>
+      </a>
     </div>
   </div>
 
@@ -132,11 +142,10 @@
       var r = await fetch("/api/photos", { method:"POST", body: fd });
       var data = await r.json();
       if (!r.ok) throw new Error(data.error || "Error");
-      setMsg("photoMsg","¡Foto subida! Gracias 💕", true);
+      setMsg("photoMsg","¡Foto subida! Gracias 💕 Mirala en la galería 📸", true);
       document.getElementById("pname").value=""; document.getElementById("pcap").value="";
       fileInput.value=""; document.getElementById("fileLabel").textContent="📷 Tocar para elegir foto";
       document.getElementById("preview").style.display="none";
-      cargarFotos();
     } catch(e){ setMsg("photoMsg", e.message || "No se pudo subir", false); }
     btn.disabled = false; btn.textContent = "Subir foto";
   }
@@ -155,38 +164,11 @@
       });
       var data = await r.json();
       if (!r.ok) throw new Error(data.error || "Error");
-      setMsg("msgMsg","¡Mensaje enviado! Gracias 💕", true);
+      setMsg("msgMsg","¡Mensaje enviado! Gracias 💕 Mirálo en las frases 💌", true);
       document.getElementById("mname").value=""; document.getElementById("mtext").value="";
-      cargarMensajes();
     } catch(e){ setMsg("msgMsg", e.message || "No se pudo enviar", false); }
     btn.disabled = false; btn.textContent = "Enviar mensaje";
   }
-
-  async function cargarFotos(){
-    try {
-      var r = await fetch("/api/photos"); var list = await r.json();
-      var g = document.getElementById("gallery");
-      document.getElementById("galEmpty").style.display = list.length ? "none" : "block";
-      g.innerHTML = list.map(function(p){
-        return '<div class="gphoto"><img src="'+esc(p.image_url)+'" alt="" loading="lazy" />'+
-          '<div class="cap"><div class="n">'+esc(p.name)+'</div>'+
-          (p.caption ? '<div class="c">'+esc(p.caption)+'</div>' : '')+'</div></div>';
-      }).join("");
-    } catch(e){}
-  }
-
-  async function cargarMensajes(){
-    try {
-      var r = await fetch("/api/messages"); var list = await r.json();
-      var n = document.getElementById("notes");
-      document.getElementById("notesEmpty").style.display = list.length ? "none" : "block";
-      n.innerHTML = list.map(function(m){
-        return '<div class="note"><div class="q">"'+esc(m.message)+'"</div><span class="by">— '+esc(m.name)+'</span></div>';
-      }).join("");
-    } catch(e){}
-  }
-
-  cargarFotos(); cargarMensajes();
 </script>
 </body>
 </html>

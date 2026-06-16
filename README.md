@@ -70,12 +70,19 @@ var WHATSAPP_NUMBER = "5493512736375"; // código de país + número, sin + ni e
 ## Estructura
 
 ```
-index.html        Invitación principal
-muro.html         Muro público (subir foto / dejar frase / ver todo)
-admin.html        Panel admin
-server.js         Servidor Express + API
-db.js             Pool de PostgreSQL e init de tablas
-r2.js             Cliente de Cloudflare R2 (subida/borrado de imágenes)
-package.json      Dependencias y script de inicio
-assets/           Fotos, conejita, favicon y música
+server.js              Servidor Express + API (única puerta de entrada)
+db.js                  Pool de PostgreSQL e init de tablas
+r2.js                  Cliente de Cloudflare R2 (subida/borrado de imágenes)
+package.json           Dependencias y script de inicio
+public/                Todo lo servido al navegador (lo único expuesto)
+  index.html           Invitación principal
+  muro.html            Subir foto / dejar frase
+  fotos.html           Galería de fotos (/fotos)
+  frases.html          Frases para Pilar (/frases)
+  admin.html           Panel admin (/admin)
+  assets/              Fotos, conejita, favicon y música
 ```
+
+> El servidor solo expone la carpeta `public/`. El código (`server.js`, `db.js`,
+> `r2.js`) y el `.env` nunca se sirven al navegador. Los assets se cachean 7 días
+> y el HTML se sirve siempre fresco (`Cache-Control: no-cache`).

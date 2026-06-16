@@ -54,6 +54,21 @@
   .note-card .by { display:block; color:var(--pink-deep); font-weight:700; margin-top:8px; }
   .empty { color:var(--text-soft); text-align:center; padding:24px; }
   td .del-row { background:none; border:none; cursor:pointer; color:#c0566a; font-weight:700; }
+
+  @media (max-width:600px){
+    .wrap { padding:20px 14px 48px; }
+    header .ttl { font-size:1.9rem; }
+    .stats { grid-template-columns:1fr 1fr; gap:10px; }
+    .stat { padding:14px; }
+    .stat .num { font-size:1.8rem; }
+    .tab { padding:8px 14px; font-size:.9rem; }
+    /* La tabla de confirmaciones scrollea en horizontal en vez de desbordar */
+    #v-rsvps { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    #rsvpTable { min-width:520px; }
+    th, td { padding:10px 11px; font-size:.86rem; }
+    .grid { grid-template-columns:1fr 1fr; gap:10px; }
+    .item img { height:130px; }
+  }
 </style>
 </head>
 <body>

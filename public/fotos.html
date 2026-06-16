@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Galería de fotos · Pilar 🎀</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#fdeef0; --bg-soft:#fbe3e8; --card:#fff7f8; --text:#8a5a64; --text-soft:#b08a92;
+    --pink:#f4b8c8; --pink-deep:#ec9bb0; --pink-light:#fad6de; --white:#fffafb;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Quicksand',sans-serif; color:var(--text); background:linear-gradient(180deg,var(--bg) 0%,var(--bg-soft) 55%,#f7d9e1 100%); min-height:100vh; padding-bottom:60px; }
+  body.locked { overflow:hidden; }
+  h1 { font-family:'Cormorant Garamond',serif; }
+
+  .top { text-align:center; padding:46px 20px 6px; }
+  .top .script { font-family:'Dancing Script',cursive; font-size:clamp(2.8rem,13vw,4.4rem); color:var(--pink-deep); line-height:1; text-shadow:0 4px 14px rgba(236,155,176,.3); }
+  .top p { color:var(--text-soft); margin-top:6px; font-size:1.02rem; }
+  .nav { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+  .nav a { text-decoration:none; font-weight:700; font-size:.92rem; padding:9px 18px; border-radius:30px; border:1px solid var(--pink); color:var(--pink-deep); background:var(--white); transition:transform .15s, background .15s; }
+  .nav a:hover { transform:translateY(-2px); background:var(--pink-light); }
+  .nav a.active { background:var(--pink-deep); color:#fff; border-color:var(--pink-deep); }
+
+  .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
+  .count { text-align:center; color:var(--text-soft); margin:22px 0 14px; font-size:.9rem; letter-spacing:.08em; text-transform:uppercase; }
+
+  /* Masonry con columnas */
+  .masonry { columns: 4 220px; column-gap: 16px; }
+  .gphoto { break-inside: avoid; margin:0 0 16px; background:#fff; border-radius:20px; overflow:hidden; cursor:pointer;
+    box-shadow:0 10px 26px rgba(236,155,176,.28); transition:transform .25s ease, box-shadow .25s ease; position:relative; }
+  .gphoto:hover { transform:translateY(-4px) scale(1.01); box-shadow:0 18px 40px rgba(236,155,176,.45); }
+  .gphoto img { width:100%; display:block; }
+  .gphoto .cap { padding:11px 14px 13px; }
+  .gphoto .cap .n { font-family:'Dancing Script',cursive; font-weight:700; color:var(--pink-deep); font-size:1.4rem; line-height:1; }
+  .gphoto .cap .c { font-size:.88rem; color:var(--text-soft); margin-top:4px; font-style:italic; }
+  .gphoto .heart { position:absolute; top:10px; right:12px; font-size:1.1rem; opacity:.9; filter:drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
+
+  .empty { text-align:center; color:var(--text-soft); padding:60px 20px; font-size:1.05rem; }
+  .empty a { color:var(--pink-deep); font-weight:700; }
+  .skeleton { columns:4 220px; column-gap:16px; }
+  .sk { break-inside:avoid; margin:0 0 16px; border-radius:20px; background:linear-gradient(100deg,#fbe3e8,#fff2f5,#fbe3e8); background-size:200% 100%; animation:sh 1.3s linear infinite; }
+  @keyframes sh { to { background-position:-200% 0; } }
+
+  /* Lightbox */
+  .lb { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:rgba(90,55,62,.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    opacity:0; visibility:hidden; transition:opacity .3s, visibility .3s; }
+  .lb.open { opacity:1; visibility:visible; }
+  .lb-inner { max-width:880px; width:100%; text-align:center; transform:scale(.92); transition:transform .3s; }
+  .lb.open .lb-inner { transform:scale(1); }
+  .lb img { max-width:100%; max-height:74vh; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,.5); }
+  .lb .lb-cap { margin-top:14px; color:#fff; }
+  .lb .lb-cap .n { font-family:'Dancing Script',cursive; font-size:2rem; color:#ffd9e3; }
+  .lb .lb-cap .c { font-style:italic; opacity:.9; margin-top:2px; }
+  .lb-close { position:absolute; top:18px; right:22px; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,.18); color:#fff; font-size:1.5rem; line-height:1; }
+  .lb-nav { position:absolute; top:50%; transform:translateY(-50%); width:50px; height:50px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,.18); color:#fff; font-size:1.6rem; display:flex; align-items:center; justify-content:center; }
+  .lb-nav.prev { left:14px; } .lb-nav.next { right:14px; }
+
+  @media (max-width:600px){
+    .top { padding:34px 16px 6px; }
+    .wrap { padding:0 12px; }
+    /* Dos columnas más angostas en el celu para ver más fotos de un vistazo */
+    .masonry, .skeleton { columns: 2 140px; column-gap: 12px; }
+    .gphoto, .sk { margin-bottom:12px; border-radius:16px; }
+    .gphoto .cap { padding:9px 11px 11px; }
+    .gphoto .cap .n { font-size:1.2rem; }
+    .gphoto .cap .c { font-size:.8rem; }
+    .nav a { font-size:.85rem; padding:8px 14px; }
+    .lb { padding:16px; }
+    .lb img { max-height:68vh; }
+    .lb-nav { width:42px; height:42px; font-size:1.4rem; }
+    .lb-nav.prev { left:8px; } .lb-nav.next { right:8px; }
+    .lb-close { top:12px; right:14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="script">Galería de Pilar</div>
+    <p>Cada foto, un recuerdo lleno de amor 🐰💕</p>
+    <nav class="nav">
+      <a href="/">Invitación</a>
+      <a href="/fotos" class="active">📸 Fotos</a>
+      <a href="/frases">💌 Frases</a>
+      <a href="/muro">＋ Subir</a>
+    </nav>
+  </div>
+
+  <div class="wrap">
+    <div class="count" id="count"></div>
+    <div class="masonry" id="masonry"></div>
+    <div class="skeleton" id="skeleton">
+      <div class="sk" style="height:240px"></div><div class="sk" style="height:180px"></div>
+      <div class="sk" style="height:300px"></div><div class="sk" style="height:200px"></div>
+      <div class="sk" style="height:260px"></div><div class="sk" style="height:220px"></div>
+      <div class="sk" style="height:190px"></div><div class="sk" style="height:280px"></div>
+    </div>
+    <div class="empty" id="empty" style="display:none">
+      Todavía no hay fotos 🌸<br /><a href="/muro">¡Sé el primero en compartir una!</a>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lb" id="lb">
+    <button class="lb-close" onclick="cerrarLb()">×</button>
+    <button class="lb-nav prev" onclick="navLb(-1)">‹</button>
+    <button class="lb-nav next" onclick="navLb(1)">›</button>
+    <div class="lb-inner">
+      <img id="lbImg" src="" alt="" />
+      <div class="lb-cap"><div class="n" id="lbName"></div><div class="c" id="lbCap"></div></div>
+    </div>
+  </div>
+
+<script>
+  function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  var fotos = [], idx = 0;
+
+  async function cargar(){
+    try {
+      var r = await fetch("/api/photos"); fotos = await r.json();
+      document.getElementById("skeleton").style.display = "none";
+      if (!fotos.length){ document.getElementById("empty").style.display = "block"; return; }
+      document.getElementById("count").textContent = fotos.length + (fotos.length === 1 ? " recuerdo compartido" : " recuerdos compartidos");
+      var m = document.getElementById("masonry");
+      m.innerHTML = fotos.map(function(p, i){
+        return '<div class="gphoto" onclick="abrirLb('+i+')"><span class="heart">🤍</span>'+
+          '<img src="'+esc(p.image_url)+'" alt="" loading="lazy" />'+
+          '<div class="cap"><div class="n">'+esc(p.name)+'</div>'+
+          (p.caption ? '<div class="c">"'+esc(p.caption)+'"</div>' : '')+'</div></div>';
+      }).join("");
+    } catch(e){
+      document.getElementById("skeleton").style.display = "none";
+      document.getElementById("empty").style.display = "block";
+    }
+  }
+
+  function abrirLb(i){
+    idx = i; var p = fotos[i];
+    document.getElementById("lbImg").src = p.image_url;
+    document.getElementById("lbName").textContent = p.name;
+    document.getElementById("lbCap").textContent = p.caption ? '"'+p.caption+'"' : "";
+    document.getElementById("lb").classList.add("open");
+    document.body.classList.add("locked");
+  }
+  function cerrarLb(){ document.getElementById("lb").classList.remove("open"); document.body.classList.remove("locked"); }
+  function navLb(d){ idx = (idx + d + fotos.length) % fotos.length; abrirLb(idx); }
+
+  document.getElementById("lb").addEventListener("click", function(e){ if (e.target === this) cerrarLb(); });
+  document.addEventListener("keydown", function(e){
+    if (!document.getElementById("lb").classList.contains("open")) return;
+    if (e.key === "Escape") cerrarLb();
+    if (e.key === "ArrowLeft") navLb(-1);
+    if (e.key === "ArrowRight") navLb(1);
+  });
+
+  cargar();
+</script>
+</body>
+</html>
