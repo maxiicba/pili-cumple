@@ -599,22 +599,29 @@
       if (nombre) setTimeout(function () { nombre.focus({ preventScroll: true }); }, 700);
     });
 
-    // El botón aparece recién después de scrollear (no tapa la portada/inicio)
+    // El botón aparece recién después de pasar el inicio (no tapa la portada)
     // y se oculta cuando el formulario de RSVP ya está a la vista.
+    // Usamos IntersectionObserver (no scrollY) porque el scroll vive en <body>.
+    var hero = document.querySelector(".hero");
+    var pasoElInicio = false;
     var formularioVisible = false;
     function actualizarFab() {
-      var scrolleoSuficiente = window.scrollY > 500;
-      fabRsvp.classList.toggle("hide", !scrolleoSuficiente || formularioVisible);
+      fabRsvp.classList.toggle("hide", !pasoElInicio || formularioVisible);
     }
     fabRsvp.classList.add("hide"); // arranca oculto
-    if ("IntersectionObserver" in window) {
+    if ("IntersectionObserver" in window && hero) {
+      new IntersectionObserver(function (entries) {
+        pasoElInicio = !entries[0].isIntersecting; // hero fuera de pantalla = ya scrolleó
+        actualizarFab();
+      }, { threshold: 0 }).observe(hero);
       new IntersectionObserver(function (entries) {
         formularioVisible = entries[0].isIntersecting;
         actualizarFab();
       }, { threshold: 0.25 }).observe(rsvpSection);
+    } else {
+      // Navegadores sin IntersectionObserver: mostrar siempre.
+      fabRsvp.classList.remove("hide");
     }
-    window.addEventListener("scroll", actualizarFab, { passive: true });
-    actualizarFab();
   }
 
   /* ====== MESA DE REGALOS ====== */
