@@ -5,6 +5,8 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const archiver = require("archiver");
+const rateLimit = require("express-rate-limit");
+const QRCode = require("qrcode");
 
 const { pool, init } = require("./db");
 const r2 = require("./r2");
@@ -15,8 +17,28 @@ const SESSION_SECRET =
   process.env.SESSION_SECRET || crypto.randomBytes(16).toString("hex");
 
 const app = express();
+// En Railway/hosting con proxy: necesario para que el rate-limit lea bien la IP real.
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(cookieParser());
+
+// ====== ANTI-SPAM (límite de envíos por IP) ======
+// Subir fotos: más acotado porque pesa más.
+const uploadLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutos
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Estás subiendo demasiado rápido. Probá de nuevo en un ratito 🌸" },
+});
+// Frases y confirmaciones.
+const writeLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutos
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiados envíos seguidos. Esperá un momento y reintentá 🌸" },
+});
 
 // Subida en memoria, solo imágenes, hasta 10 MB.
 const upload = multer({
@@ -63,6 +85,25 @@ app.get("/api/admin/session", (req, res) => {
   res.json({ admin: isAdmin(req) });
 });
 
+// QR que apunta al muro (/muro) usando el dominio actual. Para imprimir y poner en las mesas.
+app.get("/api/admin/qr", requireAdmin, async (req, res) => {
+  try {
+    const target = `${req.protocol}://${req.get("host")}/muro`;
+    const png = await QRCode.toBuffer(target, {
+      type: "png",
+      width: 700,
+      margin: 2,
+      color: { dark: "#8a5a64", light: "#ffffffff" },
+    });
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Cache-Control", "no-store");
+    res.send(png);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo generar el QR" });
+  }
+});
+
 /* ====== FOTOS (recuerdos con imagen) ====== */
 app.get("/api/photos", async (req, res) => {
   try {
@@ -76,7 +117,7 @@ app.get("/api/photos", async (req, res) => {
   }
 });
 
-app.post("/api/photos", upload.single("image"), async (req, res) => {
+app.post("/api/photos", uploadLimiter, upload.single("image"), async (req, res) => {
   try {
     const name = (req.body.name || "").trim();
     const caption = (req.body.caption || "").trim();
@@ -172,7 +213,7 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 
-app.post("/api/messages", async (req, res) => {
+app.post("/api/messages", writeLimiter, async (req, res) => {
   try {
     const name = (req.body.name || "").trim();
     const message = (req.body.message || "").trim();
@@ -200,7 +241,7 @@ app.delete("/api/admin/messages/:id", requireAdmin, async (req, res) => {
 });
 
 /* ====== CONFIRMACIONES (RSVP) ====== */
-app.post("/api/rsvps", async (req, res) => {
+app.post("/api/rsvps", writeLimiter, async (req, res) => {
   try {
     const name = (req.body.name || "").trim();
     const attending = (req.body.attending || "").trim();

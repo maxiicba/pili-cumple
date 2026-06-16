@@ -42,6 +42,13 @@
   .dl-btn:hover { transform:translateY(-2px); }
   .dl-btn:disabled { opacity:.6; cursor:default; transform:none; }
 
+  .qr-card { background:var(--card); border-radius:18px; padding:26px 20px; text-align:center; box-shadow:0 8px 20px rgba(236,155,176,.18); }
+  .qr-card .qt { font-family:'Dancing Script',cursive; font-size:1.9rem; color:var(--pink-deep); }
+  .qr-card p { color:var(--text-soft); max-width:440px; margin:8px auto 18px; font-size:.95rem; }
+  .qr-card img { width:260px; max-width:80%; height:auto; background:#fff; border-radius:16px; padding:12px; box-shadow:0 6px 16px rgba(236,155,176,.25); }
+  .qr-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+  .qr-btns a { text-decoration:none; }
+
   table { width:100%; border-collapse:collapse; background:var(--card); border-radius:16px; overflow:hidden; box-shadow:0 8px 20px rgba(236,155,176,.18); }
   th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--pink-light); font-size:.92rem; }
   th { background:var(--pink-light); color:var(--text); }
@@ -105,6 +112,7 @@
       <button class="tab active" data-v="rsvps" onclick="showTab('rsvps')">Confirmaciones</button>
       <button class="tab" data-v="photos" onclick="showTab('photos')">Fotos</button>
       <button class="tab" data-v="messages" onclick="showTab('messages')">Mensajes</button>
+      <button class="tab" data-v="qr" onclick="showTab('qr')">QR muro</button>
     </div>
 
     <div class="view active" id="v-rsvps">
@@ -123,6 +131,18 @@
     <div class="view" id="v-messages">
       <div class="grid" id="msgGrid"></div>
       <div class="empty" id="msgEmpty" style="display:none">Sin mensajes todavía.</div>
+    </div>
+
+    <div class="view" id="v-qr">
+      <div class="qr-card">
+        <div class="qt">QR del muro de recuerdos</div>
+        <p>Imprimí este código y ponelo en las mesas del salón. Al escanearlo con la cámara, los invitados van directo a subir fotos y dejar frases para Pilar 🐰🎀</p>
+        <img id="qrImg" src="/api/admin/qr" alt="QR que lleva al muro" />
+        <div class="qr-btns">
+          <button class="dl-btn" onclick="imprimirQR()">🖨️ Imprimir</button>
+          <a class="dl-btn" href="/api/admin/qr" download="qr-muro-pilar.png">⬇️ Descargar PNG</a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -179,6 +199,21 @@
       return "<div class='note-card'><button class='del' onclick=\"delItem('messages',"+m.id+")\">🗑️</button>"+
         "<div class='q'>\""+esc(m.message)+"\"</div><span class='by'>— "+esc(m.name)+"</span></div>";
     }).join("");
+  }
+
+  function imprimirQR(){
+    var win = window.open("", "_blank", "width=620,height=760");
+    if (!win) { alert("Permití las ventanas emergentes para imprimir el QR"); return; }
+    win.document.write(
+      '<html><head><title>QR · Muro de Pilar</title>' +
+      '<style>body{font-family:sans-serif;text-align:center;padding:36px;color:#8a5a64}' +
+      'h2{font-family:Georgia,serif;color:#ec9bb0;margin:0 0 6px}p{color:#a98088;margin:0 0 20px}' +
+      'img{width:80%;max-width:440px}</style></head><body>' +
+      '<h2>Sumá tus fotos y frases 🎀</h2>' +
+      '<p>Escaneá el código con la cámara del celular</p>' +
+      '<img src="/api/admin/qr" onload="window.focus();window.print();" /></body></html>'
+    );
+    win.document.close();
   }
 
   function descargarFotos(){
