@@ -35,6 +35,13 @@
   .tab.active { background:var(--pink-deep); color:#fff; border-color:var(--pink-deep); }
   .view { display:none; } .view.active { display:block; }
 
+  .toolbar { display:flex; justify-content:flex-end; margin-bottom:12px; }
+  .dl-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border:none; border-radius:30px;
+    background:var(--pink-deep); color:#fff; font-family:inherit; font-weight:700; font-size:.92rem; cursor:pointer;
+    box-shadow:0 8px 18px rgba(236,155,176,.4); transition:transform .15s; }
+  .dl-btn:hover { transform:translateY(-2px); }
+  .dl-btn:disabled { opacity:.6; cursor:default; transform:none; }
+
   table { width:100%; border-collapse:collapse; background:var(--card); border-radius:16px; overflow:hidden; box-shadow:0 8px 20px rgba(236,155,176,.18); }
   th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--pink-light); font-size:.92rem; }
   th { background:var(--pink-light); color:var(--text); }
@@ -106,6 +113,9 @@
     </div>
 
     <div class="view" id="v-photos">
+      <div class="toolbar">
+        <button class="dl-btn" id="dlBtn" onclick="descargarFotos()">⬇️ Descargar todas (ZIP)</button>
+      </div>
       <div class="grid" id="photoGrid"></div>
       <div class="empty" id="photoEmpty" style="display:none">Sin fotos todavía.</div>
     </div>
@@ -169,6 +179,16 @@
       return "<div class='note-card'><button class='del' onclick=\"delItem('messages',"+m.id+")\">🗑️</button>"+
         "<div class='q'>\""+esc(m.message)+"\"</div><span class='by'>— "+esc(m.name)+"</span></div>";
     }).join("");
+  }
+
+  function descargarFotos(){
+    var n = parseInt(document.getElementById("stPhotos").textContent, 10) || 0;
+    if (!n) { alert("Todavía no hay fotos para descargar 🌸"); return; }
+    var btn = document.getElementById("dlBtn");
+    btn.disabled = true; var prev = btn.textContent; btn.textContent = "Preparando ZIP...";
+    // El navegador descarga el archivo (la cookie de admin viaja sola).
+    window.location.href = "/api/admin/photos/download";
+    setTimeout(function(){ btn.disabled = false; btn.textContent = prev; }, 4000);
   }
 
   async function delItem(type, id){

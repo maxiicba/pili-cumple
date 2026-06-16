@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
+const archiver = require("archiver");
 
 const { pool, init } = require("./db");
 const r2 = require("./r2");
@@ -93,6 +94,54 @@ app.post("/api/photos", upload.single("image"), async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "No se pudo subir la foto" });
+  }
+});
+
+// Descarga TODAS las fotos en un único ZIP (streaming desde R2).
+app.get("/api/admin/photos/download", requireAdmin, async (req, res) => {
+  try {
+    if (!r2.isConfigured)
+      return res.status(503).json({ error: "Almacenamiento de imágenes no configurado" });
+
+    const { rows } = await pool.query(
+      "SELECT name, caption, image_key, created_at FROM photos ORDER BY created_at ASC"
+    );
+    if (!rows.length) return res.status(404).json({ error: "No hay fotos para descargar" });
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="fotos-pilar.zip"'
+    );
+
+    const archive = archiver("zip", { zlib: { level: 6 } });
+    archive.on("warning", (err) => console.warn("[zip] warning:", err.message));
+    archive.on("error", (err) => {
+      console.error("[zip] error:", err);
+      res.destroy(err);
+    });
+    archive.pipe(res);
+
+    const used = {};
+    for (const p of rows) {
+      if (!p.image_key) continue;
+      const ext = (p.image_key.split(".").pop() || "jpg").toLowerCase();
+      // Nombre legible y único: "Nombre.jpg", "Nombre-2.jpg", etc.
+      const safe = (p.name || "foto").replace(/[^\p{L}\p{N} _-]/gu, "").trim().slice(0, 40) || "foto";
+      let base = safe;
+      used[base] = (used[base] || 0) + 1;
+      if (used[base] > 1) base = `${safe}-${used[base]}`;
+      try {
+        const stream = await r2.getObjectStream(p.image_key);
+        archive.append(stream, { name: `${base}.${ext}` });
+      } catch (e) {
+        console.error("[zip] no se pudo agregar", p.image_key, e.message);
+      }
+    }
+    await archive.finalize();
+  } catch (e) {
+    console.error(e);
+    if (!res.headersSent) res.status(500).json({ error: "No se pudo generar el ZIP" });
   }
 });
 

@@ -3,6 +3,7 @@ const {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } = require("@aws-sdk/client-s3");
 
 const ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
@@ -61,4 +62,13 @@ async function deleteImage(key) {
   await client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
 }
 
-module.exports = { uploadImage, deleteImage, isConfigured };
+// Devuelve el stream (Readable) del objeto guardado en R2, para descargarlo/zippearlo.
+async function getObjectStream(key) {
+  if (!client) throw new Error("R2 no está configurado");
+  const out = await client.send(
+    new GetObjectCommand({ Bucket: BUCKET, Key: key })
+  );
+  return out.Body; // Readable stream en Node
+}
+
+module.exports = { uploadImage, deleteImage, getObjectStream, isConfigured };
