@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel Admin · Pilar</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Dancing+Script:wght@700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#fdeef0; --card:#fff7f8; --text:#7a4a54; --text-soft:#a98088; --pink:#f4b8c8; --pink-deep:#ec9bb0; --pink-light:#fad6de; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Quicksand',sans-serif; color:var(--text); background:var(--bg); min-height:100vh; }
+  h1,h2 { font-family:'Cormorant Garamond',serif; }
+  .wrap { max-width:1000px; margin:0 auto; padding:24px 18px 60px; }
+  header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-bottom:8px; }
+  header .ttl { font-family:'Dancing Script',cursive; font-size:2.2rem; color:var(--pink-deep); }
+  .logout { background:none; border:1px solid var(--pink); color:var(--pink-deep); border-radius:30px; padding:8px 18px; font-family:inherit; font-weight:700; cursor:pointer; }
+
+  /* Login */
+  .login { max-width:360px; margin:12vh auto 0; background:var(--card); border-radius:24px; padding:30px; text-align:center; box-shadow:0 12px 30px rgba(236,155,176,.25); }
+  .login .ttl { font-family:'Dancing Script',cursive; font-size:2.4rem; color:var(--pink-deep); }
+  .login input { width:100%; margin-top:18px; padding:13px 14px; border:1px solid var(--pink-light); border-radius:14px; font-family:inherit; font-size:1rem; }
+  .login button { width:100%; margin-top:14px; padding:13px; border:none; border-radius:30px; background:var(--pink-deep); color:#fff; font-family:inherit; font-weight:700; font-size:1rem; cursor:pointer; }
+  .err { color:#d35d6e; margin-top:10px; min-height:1.2em; font-size:.9rem; }
+
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin:18px 0; }
+  .stat { background:var(--card); border-radius:18px; padding:18px; text-align:center; box-shadow:0 8px 20px rgba(236,155,176,.18); }
+  .stat .num { font-size:2.1rem; font-weight:700; color:var(--pink-deep); }
+  .stat .lbl { color:var(--text-soft); font-size:.85rem; }
+
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .tab { padding:9px 18px; border-radius:30px; border:1px solid var(--pink-light); background:var(--card); color:var(--text); cursor:pointer; font-family:inherit; font-weight:600; }
+  .tab.active { background:var(--pink-deep); color:#fff; border-color:var(--pink-deep); }
+  .view { display:none; } .view.active { display:block; }
+
+  table { width:100%; border-collapse:collapse; background:var(--card); border-radius:16px; overflow:hidden; box-shadow:0 8px 20px rgba(236,155,176,.18); }
+  th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--pink-light); font-size:.92rem; }
+  th { background:var(--pink-light); color:var(--text); }
+  tr:last-child td { border-bottom:none; }
+  .badge { padding:3px 10px; border-radius:20px; font-size:.8rem; font-weight:700; }
+  .badge.yes { background:#d6f3e4; color:#2f8f5f; } .badge.no { background:#fbdde2; color:#c0566a; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; }
+  .item { background:var(--card); border-radius:16px; overflow:hidden; box-shadow:0 8px 20px rgba(236,155,176,.18); position:relative; }
+  .item img { width:100%; height:150px; object-fit:cover; display:block; }
+  .item .meta { padding:10px 12px; }
+  .item .meta .n { font-weight:700; color:var(--pink-deep); }
+  .item .meta .c, .item .meta .m { font-size:.85rem; color:var(--text-soft); margin-top:3px; }
+  .del { position:absolute; top:8px; right:8px; background:rgba(255,255,255,.92); border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:1rem; box-shadow:0 3px 8px rgba(0,0,0,.15); }
+  .note-card { background:var(--card); border-radius:16px; padding:16px; box-shadow:0 8px 20px rgba(236,155,176,.18); position:relative; }
+  .note-card .q { font-family:'Cormorant Garamond',serif; font-style:italic; }
+  .note-card .by { display:block; color:var(--pink-deep); font-weight:700; margin-top:8px; }
+  .empty { color:var(--text-soft); text-align:center; padding:24px; }
+  td .del-row { background:none; border:none; cursor:pointer; color:#c0566a; font-weight:700; }
+</style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div class="login" id="login">
+    <div class="ttl">Panel Pilar 🎀</div>
+    <input type="password" id="pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()" />
+    <button onclick="login()">Entrar</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+
+  <!-- PANEL -->
+  <div class="wrap" id="panel" style="display:none">
+    <header>
+      <div class="ttl">Panel de Pilar 🎀</div>
+      <button class="logout" onclick="logout()">Salir</button>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><div class="num" id="stRsvp">0</div><div class="lbl">Confirmaciones</div></div>
+      <div class="stat"><div class="num" id="stGuests">0</div><div class="lbl">Personas (sí)</div></div>
+      <div class="stat"><div class="num" id="stPhotos">0</div><div class="lbl">Fotos</div></div>
+      <div class="stat"><div class="num" id="stMsgs">0</div><div class="lbl">Mensajes</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-v="rsvps" onclick="showTab('rsvps')">Confirmaciones</button>
+      <button class="tab" data-v="photos" onclick="showTab('photos')">Fotos</button>
+      <button class="tab" data-v="messages" onclick="showTab('messages')">Mensajes</button>
+    </div>
+
+    <div class="view active" id="v-rsvps">
+      <table id="rsvpTable"><thead><tr><th>Nombre</th><th>Asistencia</th><th>Personas</th><th>Fecha</th><th></th></tr></thead><tbody></tbody></table>
+      <div class="empty" id="rsvpEmpty" style="display:none">Sin confirmaciones todavía.</div>
+    </div>
+
+    <div class="view" id="v-photos">
+      <div class="grid" id="photoGrid"></div>
+      <div class="empty" id="photoEmpty" style="display:none">Sin fotos todavía.</div>
+    </div>
+
+    <div class="view" id="v-messages">
+      <div class="grid" id="msgGrid"></div>
+      <div class="empty" id="msgEmpty" style="display:none">Sin mensajes todavía.</div>
+    </div>
+  </div>
+
+<script>
+  function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  function fdate(s){ try { return new Date(s).toLocaleString("es-AR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); } catch(e){ return s; } }
+
+  async function login(){
+    var pass = document.getElementById("pass").value;
+    var r = await fetch("/api/admin/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ password: pass }) });
+    if (r.ok) { document.getElementById("login").style.display="none"; document.getElementById("panel").style.display="block"; cargarTodo(); }
+    else { document.getElementById("loginErr").textContent = "Contraseña incorrecta"; }
+  }
+  async function logout(){ await fetch("/api/admin/logout",{method:"POST"}); location.reload(); }
+
+  function showTab(v){
+    document.querySelectorAll(".tab").forEach(function(t){ t.classList.toggle("active", t.dataset.v===v); });
+    document.querySelectorAll(".view").forEach(function(el){ el.classList.toggle("active", el.id==="v-"+v); });
+  }
+
+  async function cargarTodo(){ await Promise.all([cargarRsvps(), cargarFotos(), cargarMensajes()]); }
+
+  async function cargarRsvps(){
+    var r = await fetch("/api/admin/rsvps"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("stRsvp").textContent = list.length;
+    var guests = list.filter(function(x){ return /s[ií]/i.test(x.attending); }).reduce(function(a,x){ return a + (x.guests||0); }, 0);
+    document.getElementById("stGuests").textContent = guests;
+    var tb = document.querySelector("#rsvpTable tbody");
+    document.getElementById("rsvpEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("rsvpTable").style.display = list.length ? "table" : "none";
+    tb.innerHTML = list.map(function(x){
+      var yes = /s[ií]/i.test(x.attending);
+      return "<tr><td>"+esc(x.name)+"</td><td><span class='badge "+(yes?"yes":"no")+"'>"+esc(x.attending)+"</span></td><td>"+x.guests+"</td><td>"+fdate(x.created_at)+"</td>"+
+        "<td><button class='del-row' onclick=\"delItem('rsvps',"+x.id+")\">Borrar</button></td></tr>";
+    }).join("");
+  }
+
+  async function cargarFotos(){
+    var r = await fetch("/api/photos"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("stPhotos").textContent = list.length;
+    document.getElementById("photoEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("photoGrid").innerHTML = list.map(function(p){
+      return "<div class='item'><button class='del' onclick=\"delItem('photos',"+p.id+")\">🗑️</button>"+
+        "<img src='"+esc(p.image_url)+"' alt='' loading='lazy' /><div class='meta'><div class='n'>"+esc(p.name)+"</div>"+
+        (p.caption?"<div class='c'>"+esc(p.caption)+"</div>":"")+"<div class='c'>"+fdate(p.created_at)+"</div></div></div>";
+    }).join("");
+  }
+
+  async function cargarMensajes(){
+    var r = await fetch("/api/messages"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("stMsgs").textContent = list.length;
+    document.getElementById("msgEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("msgGrid").innerHTML = list.map(function(m){
+      return "<div class='note-card'><button class='del' onclick=\"delItem('messages',"+m.id+")\">🗑️</button>"+
+        "<div class='q'>\""+esc(m.message)+"\"</div><span class='by'>— "+esc(m.name)+"</span></div>";
+    }).join("");
+  }
+
+  async function delItem(type, id){
+    if (!confirm("¿Borrar este elemento?")) return;
+    var r = await fetch("/api/admin/"+type+"/"+id, { method:"DELETE" });
+    if (r.ok) cargarTodo(); else alert("No se pudo borrar");
+  }
+
+  // ¿Ya hay sesión?
+  fetch("/api/admin/session").then(function(r){ return r.json(); }).then(function(d){
+    if (d.admin) { document.getElementById("login").style.display="none"; document.getElementById("panel").style.display="block"; cargarTodo(); }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Muro de recuerdos · Pilar 🎀</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#fdeef0; --bg-soft:#fbe3e8; --card:#fff7f8; --text:#8a5a64; --text-soft:#b08a92;
+    --pink:#f4b8c8; --pink-deep:#ec9bb0; --pink-light:#fad6de; --white:#fffafb;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Quicksand',sans-serif; color:var(--text); background:linear-gradient(180deg,var(--bg) 0%,var(--bg-soft) 55%,#f7d9e1 100%); min-height:100vh; padding-bottom:60px; }
+  h1,h2 { font-family:'Cormorant Garamond',serif; }
+  .top { text-align:center; padding:40px 20px 10px; }
+  .top .script { font-family:'Dancing Script',cursive; font-size:clamp(2.6rem,12vw,4rem); color:var(--pink-deep); line-height:1; }
+  .top p { color:var(--text-soft); margin-top:6px; }
+  .back { display:inline-block; margin-top:14px; color:var(--pink-deep); text-decoration:none; font-weight:700; }
+  .wrap { max-width:900px; margin:0 auto; padding:0 18px; }
+  .panel { background:var(--card); border-radius:24px; padding:22px; margin-top:22px; box-shadow:0 12px 30px rgba(236,155,176,.22); }
+  .panel h2 { color:var(--pink-deep); text-align:center; font-size:1.7rem; margin-bottom:14px; }
+  label { display:block; font-weight:600; font-size:.9rem; margin:10px 0 5px; }
+  input, textarea, .file-btn { width:100%; padding:12px 14px; border:1px solid var(--pink-light); border-radius:14px; font-family:inherit; font-size:1rem; background:#fff; color:var(--text); }
+  textarea { resize:vertical; min-height:80px; }
+  .file-btn { display:flex; align-items:center; gap:10px; cursor:pointer; color:var(--text-soft); }
+  .file-btn input { display:none; }
+  .btn { width:100%; margin-top:16px; padding:14px; border:none; border-radius:40px; background:var(--pink-deep); color:#fff; font-family:inherit; font-weight:700; font-size:1.02rem; cursor:pointer; box-shadow:0 10px 22px rgba(236,155,176,.5); transition:transform .15s; }
+  .btn:hover { transform:translateY(-2px); }
+  .btn:disabled { opacity:.6; cursor:default; transform:none; }
+  .preview { margin-top:12px; border-radius:14px; max-height:220px; width:100%; object-fit:cover; display:none; }
+  .msg { text-align:center; font-size:.92rem; margin-top:10px; min-height:1.2em; }
+  .msg.ok { color:#3a9b6a; } .msg.err { color:#d35d6e; }
+
+  .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; margin-top:8px; }
+  .gphoto { background:#fff; border-radius:18px; overflow:hidden; box-shadow:0 8px 20px rgba(236,155,176,.25); }
+  .gphoto img { width:100%; height:160px; object-fit:cover; display:block; }
+  .gphoto .cap { padding:9px 11px; }
+  .gphoto .cap .n { font-family:'Dancing Script',cursive; font-weight:700; color:var(--pink-deep); font-size:1.25rem; line-height:1; }
+  .gphoto .cap .c { font-size:.84rem; color:var(--text-soft); margin-top:3px; }
+
+  .notes { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-top:8px; }
+  .note { background:linear-gradient(160deg,#fff,#fff2f6); border-radius:18px; padding:16px 18px; box-shadow:0 8px 20px rgba(236,155,176,.2); border:1px solid var(--pink-light); }
+  .note .q { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.12rem; color:var(--text); }
+  .note .by { display:block; font-family:'Dancing Script',cursive; color:var(--pink-deep); font-weight:700; font-size:1.3rem; margin-top:8px; }
+  .empty { text-align:center; color:var(--text-soft); padding:18px; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="script">Muro de recuerdos</div>
+    <p>Dejá tu foto y un mensajito para Pilar 🐰🎀</p>
+    <a class="back" href="/">← Volver a la invitación</a>
+  </div>
+
+  <div class="wrap">
+    <!-- SUBIR FOTO -->
+    <div class="panel">
+      <h2>Compartí una foto 📸</h2>
+      <label for="pname">Tu nombre</label>
+      <input type="text" id="pname" placeholder="Ej: Tía Caro" maxlength="80" />
+      <label for="pcap">Una dedicatoria (opcional)</label>
+      <input type="text" id="pcap" placeholder="Ej: ¡Te amamos, Pili!" maxlength="200" />
+      <label>Elegí la imagen</label>
+      <label class="file-btn">
+        <span id="fileLabel">📷 Tocar para elegir foto</span>
+        <input type="file" id="pfile" accept="image/*" />
+      </label>
+      <img id="preview" class="preview" alt="" />
+      <button class="btn" id="uploadBtn" onclick="subirFoto()">Subir foto</button>
+      <div class="msg" id="photoMsg"></div>
+    </div>
+
+    <!-- DEJAR FRASE -->
+    <div class="panel">
+      <h2>Dejá una frase para Pili 💌</h2>
+      <label for="mname">Tu nombre</label>
+      <input type="text" id="mname" placeholder="Ej: Abuela Marta" maxlength="80" />
+      <label for="mtext">Tu mensaje</label>
+      <textarea id="mtext" placeholder="Escribile algo lindo a Pilar..." maxlength="500"></textarea>
+      <button class="btn" id="msgBtn" onclick="enviarMensaje()">Enviar mensaje</button>
+      <div class="msg" id="msgMsg"></div>
+    </div>
+
+    <!-- GALERÍA -->
+    <div class="panel">
+      <h2>Fotos compartidas</h2>
+      <div class="gallery" id="gallery"></div>
+      <div class="empty" id="galEmpty">Todavía no hay fotos. ¡Sé el primero! 💕</div>
+    </div>
+
+    <!-- MENSAJES -->
+    <div class="panel">
+      <h2>Mensajes para Pilar</h2>
+      <div class="notes" id="notes"></div>
+      <div class="empty" id="notesEmpty">Todavía no hay mensajes. ¡Dejá el primero! 💕</div>
+    </div>
+  </div>
+
+<script>
+  function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+
+  var fileInput = document.getElementById("pfile");
+  fileInput.addEventListener("change", function(){
+    var f = fileInput.files[0];
+    var prev = document.getElementById("preview");
+    document.getElementById("fileLabel").textContent = f ? ("📷 " + f.name) : "📷 Tocar para elegir foto";
+    if (f) { prev.src = URL.createObjectURL(f); prev.style.display = "block"; }
+    else { prev.style.display = "none"; }
+  });
+
+  function setMsg(id, text, ok){
+    var el = document.getElementById(id);
+    el.textContent = text; el.className = "msg " + (ok ? "ok" : "err");
+  }
+
+  async function subirFoto(){
+    var name = document.getElementById("pname").value.trim();
+    var caption = document.getElementById("pcap").value.trim();
+    var file = fileInput.files[0];
+    if (!name) return setMsg("photoMsg","Escribí tu nombre 🎀",false);
+    if (!file) return setMsg("photoMsg","Elegí una foto 📷",false);
+    var btn = document.getElementById("uploadBtn");
+    btn.disabled = true; btn.textContent = "Subiendo...";
+    setMsg("photoMsg","",true);
+    try {
+      var fd = new FormData();
+      fd.append("name", name); fd.append("caption", caption); fd.append("image", file);
+      var r = await fetch("/api/photos", { method:"POST", body: fd });
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Error");
+      setMsg("photoMsg","¡Foto subida! Gracias 💕", true);
+      document.getElementById("pname").value=""; document.getElementById("pcap").value="";
+      fileInput.value=""; document.getElementById("fileLabel").textContent="📷 Tocar para elegir foto";
+      document.getElementById("preview").style.display="none";
+      cargarFotos();
+    } catch(e){ setMsg("photoMsg", e.message || "No se pudo subir", false); }
+    btn.disabled = false; btn.textContent = "Subir foto";
+  }
+
+  async function enviarMensaje(){
+    var name = document.getElementById("mname").value.trim();
+    var message = document.getElementById("mtext").value.trim();
+    if (!name) return setMsg("msgMsg","Escribí tu nombre 🎀",false);
+    if (!message) return setMsg("msgMsg","Escribí un mensaje 💌",false);
+    var btn = document.getElementById("msgBtn");
+    btn.disabled = true; btn.textContent = "Enviando...";
+    try {
+      var r = await fetch("/api/messages", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ name: name, message: message })
+      });
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Error");
+      setMsg("msgMsg","¡Mensaje enviado! Gracias 💕", true);
+      document.getElementById("mname").value=""; document.getElementById("mtext").value="";
+      cargarMensajes();
+    } catch(e){ setMsg("msgMsg", e.message || "No se pudo enviar", false); }
+    btn.disabled = false; btn.textContent = "Enviar mensaje";
+  }
+
+  async function cargarFotos(){
+    try {
+      var r = await fetch("/api/photos"); var list = await r.json();
+      var g = document.getElementById("gallery");
+      document.getElementById("galEmpty").style.display = list.length ? "none" : "block";
+      g.innerHTML = list.map(function(p){
+        return '<div class="gphoto"><img src="'+esc(p.image_url)+'" alt="" loading="lazy" />'+
+          '<div class="cap"><div class="n">'+esc(p.name)+'</div>'+
+          (p.caption ? '<div class="c">'+esc(p.caption)+'</div>' : '')+'</div></div>';
+      }).join("");
+    } catch(e){}
+  }
+
+  async function cargarMensajes(){
+    try {
+      var r = await fetch("/api/messages"); var list = await r.json();
+      var n = document.getElementById("notes");
+      document.getElementById("notesEmpty").style.display = list.length ? "none" : "block";
+      n.innerHTML = list.map(function(m){
+        return '<div class="note"><div class="q">"'+esc(m.message)+'"</div><span class="by">— '+esc(m.name)+'</span></div>';
+      }).join("");
+    } catch(e){}
+  }
+
+  cargarFotos(); cargarMensajes();
+</script>
+</body>
+</html>
