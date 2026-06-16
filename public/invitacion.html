@@ -385,112 +385,36 @@
 
   <section class="reveal">
     <h2 class="section-title">Mis fotitos<span class="sub">un añito de amor</span></h2>
-    <div class="gallery" id="gallery">
-      <div class="photo feature">
-        <span class="heart-tag">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.7-4.35-9.33-8.07C.9 10.2 1.6 6.6 4.6 5.4c2-.8 4 .1 5 1.6 1-1.5 3-2.4 5-1.6 3 1.2 3.7 4.8 1.93 7.53C18.7 16.65 12 21 12 21z"/></svg>
-        </span>
-        <img alt="Pili sonriendo" src="assets/pili-sonriendo.jpeg" />
-        <p class="cap">¡Mi mejor sonrisa!</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili riendo" src="assets/pili-risa.jpeg" />
-        <p class="cap">Pura alegría</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili con lentes de corazón" src="assets/pili-lentes.jpeg" />
-        <p class="cap">Estilo propio</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili en el río" src="assets/pili-rio.jpeg" />
-        <p class="cap">Paseos con papá</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili exploradora" src="assets/pili-flor.jpeg" />
-        <p class="cap">Exploradora</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili con moñito" src="assets/pili-mono.jpeg" />
-        <p class="cap">Mi moñito</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili con gorrito rosa" src="assets/pili-gorrito.jpeg" />
-        <p class="cap">Abrigadita</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili con buzo de conejitos" src="assets/pili-conejitos.jpeg" />
-        <p class="cap">Mi pose</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili con la mamadera" src="assets/pili-mamadera.jpeg" />
-        <p class="cap">Mi mamadera</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili con bandana de conejitos" src="assets/pili-bandana.jpeg" />
-        <p class="cap">Carita curiosa</p>
-      </div>
-      <div class="photo">
-        <img alt="Pili en el cochecito" src="assets/pili-cochecito.jpeg" />
-        <p class="cap">De paseo</p>
-      </div>
-    </div>
+    <!-- Las fotos se cargan desde el panel admin (API /api/gallery) -->
+    <div class="gallery" id="gallery"></div>
     <div class="more-wrap">
-      <button class="more-btn" id="moreBtn" onclick="toggleGallery()">Ver más fotos 💕</button>
+      <button class="more-btn" id="moreBtn" onclick="toggleGallery()" style="display:none">Ver más fotos 💕</button>
     </div>
   </section>
 
-  <!-- ===== HISTORIA DE PILI (mi primer año mes a mes) ===== -->
+  <!-- ===== HISTORIA DE PILI + JUEGOS (links a páginas propias) ===== -->
   <section class="reveal">
     <h2 class="section-title">Mi primer año<span class="sub">así fui creciendo</span></h2>
-    <!-- 👇 Cambiá las fotos (src) y los textos por los reales de cada etapa -->
-    <div class="timeline">
-      <div class="tl-item">
-        <span class="dot"></span>
-        <div class="tl-card">
-          <img src="assets/pili-mamadera.jpeg" alt="Pili recién nacida" loading="lazy" />
-          <div class="m">Recién llegué</div>
-          <div class="t">El día que cambié sus vidas para siempre 💕</div>
-        </div>
+    <div class="card" style="text-align:center">
+      <p class="place" style="margin-bottom:18px">Mirá cómo fui creciendo mes a mes 🐰💕<br />Una línea de tiempo con mis momentos más lindos.</p>
+      <div class="card-btns">
+        <a class="map-btn" href="/historia">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0-6a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm.5-12H11v5l4.25 2.52.75-1.23-3.5-2.04V8z"/></svg>
+          Ver mi historia
+        </a>
       </div>
-      <div class="tl-item">
-        <span class="dot"></span>
-        <div class="tl-card">
-          <img src="assets/pili-gorrito.jpeg" alt="Pili con gorrito" loading="lazy" />
-          <div class="m">Mis primeros meses</div>
-          <div class="t">Dormir, comer y mil mimos 🍼</div>
-        </div>
-      </div>
-      <div class="tl-item">
-        <span class="dot"></span>
-        <div class="tl-card">
-          <img src="assets/pili-sonriendo.jpeg" alt="Pili sonriendo" loading="lazy" />
-          <div class="m">Mi primera sonrisa</div>
-          <div class="t">Y se me iluminó la cara 😊</div>
-        </div>
-      </div>
-      <div class="tl-item">
-        <span class="dot"></span>
-        <div class="tl-card">
-          <img src="assets/pili-conejitos.jpeg" alt="Pili sentadita" loading="lazy" />
-          <div class="m">Aprendí a sentarme</div>
-          <div class="t">¡A mirar todo desde arriba! 🐰</div>
-        </div>
-      </div>
-      <div class="tl-item">
-        <span class="dot"></span>
-        <div class="tl-card">
-          <img src="assets/pili-rio.jpeg" alt="Pili paseando" loading="lazy" />
-          <div class="m">A explorar el mundo</div>
-          <div class="t">Cada paseo, una aventura nueva 🌷</div>
-        </div>
-      </div>
-      <div class="tl-item">
-        <span class="dot"></span>
-        <div class="tl-card">
-          <img src="assets/pili-mono.jpeg" alt="Pili a punto de cumplir un año" loading="lazy" />
-          <div class="m">¡Mi primer añito!</div>
-          <div class="t">Y acá estoy, lista para festejar 🎂🎀</div>
-        </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2 class="section-title">¿Jugamos?<span class="sub">para divertirnos juntos</span></h2>
+    <div class="card" style="text-align:center">
+      <p class="place" style="margin-bottom:18px">¿Cuánto me conocés? 🎀<br />Trivia, adiviná mi foto de bebé, dejame tus predicciones y memotest.</p>
+      <div class="card-btns">
+        <a class="map-btn" href="/juegos">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1zM8 13H6v2H4v-2H2v-2h2V9h2v2h2v2zm6.5 1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+          Ir a los juegos
+        </a>
       </div>
     </div>
   </section>
@@ -767,6 +691,41 @@
       document.body.removeChild(t);
     }
   }
+
+  /* ====== GALERÍA (se carga desde el panel admin · /api/gallery) ====== */
+  function esc(s) {
+    return (s || "").replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  async function cargarGaleria() {
+    var g = document.getElementById("gallery");
+    var b = document.getElementById("moreBtn");
+    if (!g) return;
+    try {
+      var r = await fetch("/api/gallery");
+      var list = await r.json();
+      if (!Array.isArray(list) || !list.length) {
+        g.innerHTML = "";
+        if (b) b.style.display = "none";
+        return;
+      }
+      g.innerHTML = list.map(function (p, i) {
+        var feat = i === 0 ? " feature" : "";
+        var tag = i === 0 ? '<span class="heart-tag"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.7-4.35-9.33-8.07C.9 10.2 1.6 6.6 4.6 5.4c2-.8 4 .1 5 1.6 1-1.5 3-2.4 5-1.6 3 1.2 3.7 4.8 1.93 7.53C18.7 16.65 12 21 12 21z"/></svg></span>' : "";
+        return '<div class="photo' + feat + '">' + tag +
+          '<img src="' + esc(p.image_url) + '" alt="" loading="lazy" />' +
+          (p.caption ? '<div class="cap">' + esc(p.caption) + '</div>' : '') +
+          '</div>';
+      }).join("");
+      if (b) b.style.display = list.length > 3 ? "inline-flex" : "none";
+    } catch (e) {
+      g.innerHTML = "";
+      if (b) b.style.display = "none";
+    }
+  }
+  cargarGaleria();
 
   /* ====== GALERÍA VER MÁS ====== */
   function toggleGallery() {

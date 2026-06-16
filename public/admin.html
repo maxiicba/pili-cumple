@@ -69,6 +69,18 @@
   .empty { color:var(--text-soft); text-align:center; padding:24px; }
   td .del-row { background:none; border:none; cursor:pointer; color:#c0566a; font-weight:700; }
 
+  /* Formularios del panel (galería, historia, trivia) */
+  .adm-form { background:var(--card); border-radius:18px; padding:18px 20px; margin-bottom:18px; box-shadow:0 8px 20px rgba(236,155,176,.18); }
+  .adm-form h3 { font-family:'Cormorant Garamond',serif; color:var(--pink-deep); margin-bottom:12px; font-size:1.3rem; }
+  .adm-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .adm-form input[type=text], .adm-form input[type=file] { flex:1 1 180px; padding:11px 12px; border:1px solid var(--pink-light); border-radius:12px; font-family:inherit; font-size:.95rem; background:#fff; }
+  .adm-opts { display:grid; gap:8px; }
+  .adm-opts label { display:flex; align-items:center; gap:8px; }
+  .adm-opts label input[type=text] { flex:1; }
+  .adm-hint { color:var(--text-soft); font-size:.82rem; margin:8px 0 12px; }
+  .adm-msg { margin-top:10px; min-height:1.1em; font-size:.88rem; font-weight:600; }
+  .item .meta .ord { font-size:.78rem; color:var(--text-soft); }
+
   @media (max-width:600px){
     .wrap { padding:20px 14px 48px; }
     header .ttl { font-size:1.9rem; }
@@ -112,6 +124,10 @@
       <button class="tab active" data-v="rsvps" onclick="showTab('rsvps')">Confirmaciones</button>
       <button class="tab" data-v="photos" onclick="showTab('photos')">Fotos</button>
       <button class="tab" data-v="messages" onclick="showTab('messages')">Mensajes</button>
+      <button class="tab" data-v="gallery" onclick="showTab('gallery')">Galería</button>
+      <button class="tab" data-v="timeline" onclick="showTab('timeline')">Historia</button>
+      <button class="tab" data-v="trivia" onclick="showTab('trivia')">Trivia</button>
+      <button class="tab" data-v="predictions" onclick="showTab('predictions')">Predicciones</button>
       <button class="tab" data-v="qr" onclick="showTab('qr')">QR muro</button>
     </div>
 
@@ -131,6 +147,58 @@
     <div class="view" id="v-messages">
       <div class="grid" id="msgGrid"></div>
       <div class="empty" id="msgEmpty" style="display:none">Sin mensajes todavía.</div>
+    </div>
+
+    <div class="view" id="v-gallery">
+      <form class="adm-form" id="galleryForm" onsubmit="return subirGaleria(event)">
+        <h3>Agregar foto a la galería</h3>
+        <div class="adm-row">
+          <input type="file" id="galleryFile" accept="image/*" required />
+          <input type="text" id="galleryCaption" placeholder="Epígrafe (opcional)" />
+          <button class="dl-btn" type="submit">＋ Agregar</button>
+        </div>
+        <div class="adm-msg" id="galleryMsg"></div>
+      </form>
+      <div class="grid" id="galleryGrid"></div>
+      <div class="empty" id="galleryEmpty" style="display:none">Sin fotos en la galería.</div>
+    </div>
+
+    <div class="view" id="v-timeline">
+      <form class="adm-form" id="timelineForm" onsubmit="return subirHistoria(event)">
+        <h3>Agregar momento a la historia</h3>
+        <div class="adm-row">
+          <input type="file" id="timelineFile" accept="image/*" required />
+          <input type="text" id="timelineTitle" placeholder="Título (ej: Mi primera sonrisa)" required />
+          <input type="text" id="timelineBody" placeholder="Descripción (opcional)" />
+          <button class="dl-btn" type="submit">＋ Agregar</button>
+        </div>
+        <div class="adm-msg" id="timelineMsg"></div>
+      </form>
+      <div class="grid" id="timelineGrid"></div>
+      <div class="empty" id="timelineEmpty" style="display:none">Sin momentos cargados.</div>
+    </div>
+
+    <div class="view" id="v-trivia">
+      <form class="adm-form" id="triviaForm" onsubmit="return subirTrivia(event)">
+        <h3>Agregar pregunta de trivia</h3>
+        <input type="text" id="triviaQ" placeholder="Pregunta" required style="margin-bottom:8px" />
+        <div class="adm-opts" id="triviaOpts">
+          <label><input type="radio" name="correcta" value="0" checked /><input type="text" class="t-opt" placeholder="Opción 1" /></label>
+          <label><input type="radio" name="correcta" value="1" /><input type="text" class="t-opt" placeholder="Opción 2" /></label>
+          <label><input type="radio" name="correcta" value="2" /><input type="text" class="t-opt" placeholder="Opción 3 (opcional)" /></label>
+          <label><input type="radio" name="correcta" value="3" /><input type="text" class="t-opt" placeholder="Opción 4 (opcional)" /></label>
+        </div>
+        <p class="adm-hint">Marcá el círculo de la respuesta correcta. Mínimo 2 opciones.</p>
+        <button class="dl-btn" type="submit">＋ Agregar pregunta</button>
+        <div class="adm-msg" id="triviaMsg"></div>
+      </form>
+      <div class="grid" id="triviaGrid" style="grid-template-columns:1fr"></div>
+      <div class="empty" id="triviaEmpty" style="display:none">Sin preguntas cargadas.</div>
+    </div>
+
+    <div class="view" id="v-predictions">
+      <div class="grid" id="predGrid" style="grid-template-columns:1fr"></div>
+      <div class="empty" id="predEmpty" style="display:none">Sin predicciones todavía.</div>
     </div>
 
     <div class="view" id="v-qr">
@@ -163,7 +231,7 @@
     document.querySelectorAll(".view").forEach(function(el){ el.classList.toggle("active", el.id==="v-"+v); });
   }
 
-  async function cargarTodo(){ await Promise.all([cargarRsvps(), cargarFotos(), cargarMensajes()]); }
+  async function cargarTodo(){ await Promise.all([cargarRsvps(), cargarFotos(), cargarMensajes(), cargarGaleria(), cargarHistoria(), cargarTrivia(), cargarPredicciones()]); }
 
   async function cargarRsvps(){
     var r = await fetch("/api/admin/rsvps"); if(!r.ok) return; var list = await r.json();
@@ -230,6 +298,114 @@
     if (!confirm("¿Borrar este elemento?")) return;
     var r = await fetch("/api/admin/"+type+"/"+id, { method:"DELETE" });
     if (r.ok) cargarTodo(); else alert("No se pudo borrar");
+  }
+
+  /* ====== GALERÍA ====== */
+  async function cargarGaleria(){
+    var r = await fetch("/api/gallery"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("galleryEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("galleryGrid").innerHTML = list.map(function(p){
+      return "<div class='item'><button class='del' onclick=\"delItem('gallery',"+p.id+")\">🗑️</button>"+
+        "<img src='"+esc(p.image_url)+"' alt='' loading='lazy' /><div class='meta'>"+
+        (p.caption?"<div class='c'>"+esc(p.caption)+"</div>":"<div class='c'>—</div>")+"</div></div>";
+    }).join("");
+  }
+  async function subirGaleria(e){
+    e.preventDefault();
+    var file = document.getElementById("galleryFile").files[0];
+    var msg = document.getElementById("galleryMsg");
+    if (!file){ msg.style.color="#c0566a"; msg.textContent="Elegí una imagen"; return false; }
+    var fd = new FormData();
+    fd.append("image", file);
+    fd.append("caption", document.getElementById("galleryCaption").value.trim());
+    msg.style.color="var(--text-soft)"; msg.textContent="Subiendo…";
+    try {
+      var r = await fetch("/api/admin/gallery", { method:"POST", body: fd });
+      if (!r.ok) throw new Error();
+      msg.style.color="#3a9b6a"; msg.textContent="¡Foto agregada! 💕";
+      document.getElementById("galleryForm").reset();
+      cargarGaleria();
+    } catch(err){ msg.style.color="#c0566a"; msg.textContent="No se pudo subir"; }
+    return false;
+  }
+
+  /* ====== HISTORIA ====== */
+  async function cargarHistoria(){
+    var r = await fetch("/api/timeline"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("timelineEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("timelineGrid").innerHTML = list.map(function(m){
+      return "<div class='item'><button class='del' onclick=\"delItem('timeline',"+m.id+")\">🗑️</button>"+
+        "<img src='"+esc(m.image_url)+"' alt='' loading='lazy' /><div class='meta'><div class='n'>"+esc(m.title)+"</div>"+
+        (m.body?"<div class='m'>"+esc(m.body)+"</div>":"")+"</div></div>";
+    }).join("");
+  }
+  async function subirHistoria(e){
+    e.preventDefault();
+    var file = document.getElementById("timelineFile").files[0];
+    var title = document.getElementById("timelineTitle").value.trim();
+    var msg = document.getElementById("timelineMsg");
+    if (!file || !title){ msg.style.color="#c0566a"; msg.textContent="Falta imagen o título"; return false; }
+    var fd = new FormData();
+    fd.append("image", file);
+    fd.append("title", title);
+    fd.append("body", document.getElementById("timelineBody").value.trim());
+    msg.style.color="var(--text-soft)"; msg.textContent="Subiendo…";
+    try {
+      var r = await fetch("/api/admin/timeline", { method:"POST", body: fd });
+      if (!r.ok) throw new Error();
+      msg.style.color="#3a9b6a"; msg.textContent="¡Momento agregado! 💕";
+      document.getElementById("timelineForm").reset();
+      cargarHistoria();
+    } catch(err){ msg.style.color="#c0566a"; msg.textContent="No se pudo subir"; }
+    return false;
+  }
+
+  /* ====== TRIVIA ====== */
+  async function cargarTrivia(){
+    var r = await fetch("/api/trivia"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("triviaEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("triviaGrid").innerHTML = list.map(function(q){
+      var opts = (q.options||[]).map(function(o, i){
+        var ok = i === q.correct;
+        return "<li style='"+(ok?"color:#2f8f5f;font-weight:700":"")+"'>"+esc(o)+(ok?" ✓":"")+"</li>";
+      }).join("");
+      return "<div class='note-card'><button class='del' onclick=\"delItem('trivia',"+q.id+")\">🗑️</button>"+
+        "<div class='q'>"+esc(q.question)+"</div><ul style='margin:8px 0 0 18px;font-size:.9rem'>"+opts+"</ul></div>";
+    }).join("");
+  }
+  async function subirTrivia(e){
+    e.preventDefault();
+    var msg = document.getElementById("triviaMsg");
+    var question = document.getElementById("triviaQ").value.trim();
+    var inputs = document.querySelectorAll("#triviaOpts .t-opt");
+    var options = [];
+    inputs.forEach(function(inp){ var v = inp.value.trim(); if (v) options.push(v); });
+    var correctRaw = parseInt(document.querySelector("#triviaOpts input[name=correcta]:checked").value, 10);
+    if (!question || options.length < 2){ msg.style.color="#c0566a"; msg.textContent="Falta la pregunta o al menos 2 opciones"; return false; }
+    if (correctRaw >= options.length){ msg.style.color="#c0566a"; msg.textContent="La opción correcta marcada está vacía"; return false; }
+    msg.style.color="var(--text-soft)"; msg.textContent="Guardando…";
+    try {
+      var r = await fetch("/api/admin/trivia", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ question:question, options:options, correct:correctRaw })
+      });
+      if (!r.ok) throw new Error();
+      msg.style.color="#3a9b6a"; msg.textContent="¡Pregunta agregada! 💕";
+      document.getElementById("triviaForm").reset();
+      cargarTrivia();
+    } catch(err){ msg.style.color="#c0566a"; msg.textContent="No se pudo guardar"; }
+    return false;
+  }
+
+  /* ====== PREDICCIONES ====== */
+  async function cargarPredicciones(){
+    var r = await fetch("/api/admin/predictions"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("predEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("predGrid").innerHTML = list.map(function(p){
+      return "<div class='note-card'><button class='del' onclick=\"delItem('predictions',"+p.id+")\">🗑️</button>"+
+        "<div class='q'>\""+esc(p.prediction)+"\"</div><span class='by'>— "+esc(p.name)+"</span>"+
+        "<div class='c' style='font-size:.8rem;color:var(--text-soft);margin-top:4px'>"+fdate(p.created_at)+"</div></div>";
+    }).join("");
   }
 
   // ¿Ya hay sesión?

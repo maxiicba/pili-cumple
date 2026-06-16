@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mi primer año · Pilar 🎀</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#fdeef0; --bg-soft:#fbe3e8; --card:#fff7f8; --text:#8a5a64; --text-soft:#b08a92;
+    --pink:#f4b8c8; --pink-deep:#ec9bb0; --pink-light:#fad6de; --white:#fffafb;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Quicksand',sans-serif; color:var(--text); background:linear-gradient(180deg,var(--bg) 0%,var(--bg-soft) 55%,#f7d9e1 100%); min-height:100vh; padding-bottom:60px; }
+  h1,h2 { font-family:'Cormorant Garamond',serif; }
+
+  .top { text-align:center; padding:46px 20px 6px; }
+  .top .script { font-family:'Dancing Script',cursive; font-size:clamp(2.8rem,13vw,4.4rem); color:var(--pink-deep); line-height:1; text-shadow:0 4px 14px rgba(236,155,176,.3); }
+  .top p { color:var(--text-soft); margin-top:6px; font-size:1.02rem; }
+  .nav { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+  .nav a { text-decoration:none; font-weight:700; font-size:.92rem; padding:9px 18px; border-radius:30px; border:1px solid var(--pink); color:var(--pink-deep); background:var(--white); transition:transform .15s, background .15s; }
+  .nav a:hover { transform:translateY(-2px); background:var(--pink-light); }
+  .nav a.active { background:var(--pink-deep); color:#fff; border-color:var(--pink-deep); }
+
+  .wrap { max-width:640px; margin:0 auto; padding:0 16px; }
+  .count { text-align:center; color:var(--text-soft); margin:22px 0 16px; font-size:.9rem; letter-spacing:.08em; text-transform:uppercase; }
+
+  /* ====== LÍNEA DE TIEMPO ====== */
+  .timeline { position:relative; max-width:560px; margin:0 auto; padding:6px 0; }
+  .timeline::before { content:""; position:absolute; left:50%; top:0; bottom:0; width:3px;
+    background:linear-gradient(var(--pink),var(--pink-light)); transform:translateX(-50%); border-radius:3px; }
+  .tl-item { position:relative; width:50%; padding:8px 30px 26px; box-sizing:border-box; }
+  .tl-item:nth-child(odd) { left:0; text-align:right; }
+  .tl-item:nth-child(even) { left:50%; text-align:left; }
+  .tl-item .dot { position:absolute; top:22px; width:16px; height:16px; border-radius:50%;
+    background:var(--pink-deep); border:3px solid var(--white); box-shadow:0 0 0 3px var(--pink-light); }
+  .tl-item:nth-child(odd) .dot { right:-8px; }
+  .tl-item:nth-child(even) .dot { left:-8px; }
+  .tl-card { display:inline-block; width:100%; max-width:236px; background:var(--card);
+    border:1px solid var(--pink-light); border-radius:18px; overflow:hidden; text-align:center;
+    box-shadow:0 10px 24px rgba(236,155,176,.22); transition:transform .3s ease; }
+  .tl-card:hover { transform:translateY(-4px) scale(1.02); }
+  .tl-card img { width:100%; height:150px; object-fit:cover; display:block; }
+  .tl-card .m { font-family:'Dancing Script',cursive; color:var(--pink-deep); font-size:1.5rem; margin:8px 0 2px; }
+  .tl-card .t { font-size:.85rem; color:var(--text-soft); padding:0 12px 14px; line-height:1.35; }
+
+  .empty { text-align:center; color:var(--text-soft); padding:60px 20px; font-size:1.05rem; }
+  .empty a { color:var(--pink-deep); font-weight:700; }
+
+  @media (max-width:600px) {
+    .top { padding:34px 16px 6px; }
+    .timeline::before { left:22px; }
+    .tl-item, .tl-item:nth-child(even) { width:100%; left:0; text-align:left; padding:6px 6px 22px 52px; }
+    .tl-item:nth-child(odd) { text-align:left; }
+    .tl-item .dot, .tl-item:nth-child(odd) .dot, .tl-item:nth-child(even) .dot { left:14px; right:auto; }
+    .tl-card { max-width:100%; }
+    .tl-card img { height:170px; }
+    .nav a { font-size:.85rem; padding:8px 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="script">Mi primer año</div>
+    <p>Así fui creciendo, mes a mes 🐰💕</p>
+    <nav class="nav">
+      <a href="/invitacion">Invitación</a>
+      <a href="/historia" class="active">🌷 Historia</a>
+      <a href="/fotos">📸 Fotos</a>
+      <a href="/juegos">🎮 Juegos</a>
+      <a href="/frases">💌 Frases</a>
+    </nav>
+  </div>
+
+  <div class="wrap">
+    <div class="count" id="count"></div>
+    <div class="timeline" id="timeline"></div>
+    <div class="empty" id="empty" style="display:none">
+      Todavía no hay momentos cargados 🌸
+    </div>
+  </div>
+
+<script>
+  function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  var firmaActual = "";
+  function firma(list){ return list.map(function(m){ return m.id; }).join(","); }
+
+  async function cargar(){
+    try {
+      var r = await fetch("/api/timeline"); var list = await r.json();
+      var nuevaFirma = firma(list);
+      if (nuevaFirma === firmaActual) return;
+      firmaActual = nuevaFirma;
+      if (!list.length){ document.getElementById("empty").style.display = "block"; document.getElementById("timeline").innerHTML = ""; document.getElementById("count").textContent = ""; return; }
+      document.getElementById("empty").style.display = "none";
+      document.getElementById("count").textContent = list.length + (list.length === 1 ? " momento" : " momentos");
+      document.getElementById("timeline").innerHTML = list.map(function(m){
+        return '<div class="tl-item"><span class="dot"></span><div class="tl-card">'+
+          '<img src="'+esc(m.image_url)+'" alt="" loading="lazy" />'+
+          '<div class="m">'+esc(m.title)+'</div>'+
+          (m.body ? '<div class="t">'+esc(m.body)+'</div>' : '')+
+          '</div></div>';
+      }).join("");
+    } catch(e){ if (!firmaActual) document.getElementById("empty").style.display = "block"; }
+  }
+  cargar();
+  setInterval(function(){ if (!document.hidden) cargar(); }, 15000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
+</script>
+</body>
+</html>

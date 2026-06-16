@@ -319,6 +319,182 @@ app.delete("/api/admin/rsvps/:id", requireAdmin, async (req, res) => {
   }
 });
 
+/* ====== GALERÍA CURADA ("Mis fotitos") ====== */
+app.get("/api/gallery", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, caption, image_url FROM gallery ORDER BY position ASC, id ASC"
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo cargar la galería" });
+  }
+});
+
+app.post("/api/admin/gallery", requireAdmin, upload.single("image"), async (req, res) => {
+  try {
+    const caption = (req.body.caption || "").trim();
+    if (!req.file) return res.status(400).json({ error: "Falta la imagen" });
+    if (!r2.isConfigured)
+      return res.status(503).json({ error: "Almacenamiento de imágenes no configurado" });
+    const { key, url } = await r2.uploadImage(req.file.buffer, req.file.mimetype);
+    const { rows } = await pool.query(
+      "INSERT INTO gallery (image_url, image_key, caption, position) VALUES ($1,$2,$3, COALESCE((SELECT MAX(position) FROM gallery),0)+1) RETURNING id, caption, image_url",
+      [url, key, caption.slice(0, 120)]
+    );
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo agregar a la galería" });
+  }
+});
+
+app.delete("/api/admin/gallery/:id", requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "DELETE FROM gallery WHERE id=$1 RETURNING image_key",
+      [req.params.id]
+    );
+    if (rows[0] && rows[0].image_key) await r2.deleteImage(rows[0].image_key).catch(() => {});
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo borrar" });
+  }
+});
+
+/* ====== HISTORIA / LÍNEA DE TIEMPO ("Mi primer año") ====== */
+app.get("/api/timeline", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, title, body, image_url FROM timeline ORDER BY position ASC, id ASC"
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo cargar la historia" });
+  }
+});
+
+app.post("/api/admin/timeline", requireAdmin, upload.single("image"), async (req, res) => {
+  try {
+    const title = (req.body.title || "").trim();
+    const body = (req.body.body || "").trim();
+    if (!title) return res.status(400).json({ error: "Falta el título" });
+    if (!req.file) return res.status(400).json({ error: "Falta la imagen" });
+    if (!r2.isConfigured)
+      return res.status(503).json({ error: "Almacenamiento de imágenes no configurado" });
+    const { key, url } = await r2.uploadImage(req.file.buffer, req.file.mimetype);
+    const { rows } = await pool.query(
+      "INSERT INTO timeline (image_url, image_key, title, body, position) VALUES ($1,$2,$3,$4, COALESCE((SELECT MAX(position) FROM timeline),0)+1) RETURNING id, title, body, image_url",
+      [url, key, title.slice(0, 80), body.slice(0, 200)]
+    );
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo agregar la etapa" });
+  }
+});
+
+app.delete("/api/admin/timeline/:id", requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "DELETE FROM timeline WHERE id=$1 RETURNING image_key",
+      [req.params.id]
+    );
+    if (rows[0] && rows[0].image_key) await r2.deleteImage(rows[0].image_key).catch(() => {});
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo borrar" });
+  }
+});
+
+/* ====== TRIVIA ("¿Cuánto conocés a Pili?") ====== */
+app.get("/api/trivia", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, question, options, correct FROM trivia ORDER BY position ASC, id ASC"
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo cargar la trivia" });
+  }
+});
+
+app.post("/api/admin/trivia", requireAdmin, async (req, res) => {
+  try {
+    const question = (req.body.question || "").trim();
+    let options = req.body.options;
+    let correct = parseInt(req.body.correct, 10);
+    if (!Array.isArray(options)) options = [];
+    options = options.map((o) => String(o || "").trim()).filter(Boolean).slice(0, 6);
+    if (!question) return res.status(400).json({ error: "Falta la pregunta" });
+    if (options.length < 2) return res.status(400).json({ error: "Poné al menos 2 opciones" });
+    if (!Number.isInteger(correct) || correct < 0 || correct >= options.length) correct = 0;
+    const { rows } = await pool.query(
+      "INSERT INTO trivia (question, options, correct, position) VALUES ($1,$2::jsonb,$3, COALESCE((SELECT MAX(position) FROM trivia),0)+1) RETURNING id, question, options, correct",
+      [question.slice(0, 160), JSON.stringify(options), correct]
+    );
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo guardar la pregunta" });
+  }
+});
+
+app.delete("/api/admin/trivia/:id", requireAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM trivia WHERE id=$1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo borrar" });
+  }
+});
+
+/* ====== PREDICCIONES PARA PILI ====== */
+app.post("/api/predictions", writeLimiter, async (req, res) => {
+  try {
+    const name = (req.body.name || "").trim();
+    const prediction = (req.body.prediction || "").trim();
+    if (!name) return res.status(400).json({ error: "Falta el nombre" });
+    if (!prediction) return res.status(400).json({ error: "Falta la predicción" });
+    const { rows } = await pool.query(
+      "INSERT INTO predictions (name, prediction) VALUES ($1,$2) RETURNING id",
+      [name.slice(0, 80), prediction.slice(0, 300)]
+    );
+    res.status(201).json({ ok: true, id: rows[0].id });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo guardar la predicción" });
+  }
+});
+
+app.get("/api/admin/predictions", requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, name, prediction, created_at FROM predictions ORDER BY created_at DESC"
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudieron cargar las predicciones" });
+  }
+});
+
+app.delete("/api/admin/predictions/:id", requireAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM predictions WHERE id=$1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo borrar" });
+  }
+});
+
 /* ====== ARCHIVOS ESTÁTICOS Y PÁGINAS ====== */
 // Solo se sirve la carpeta public/: index.html, muro.html, admin.html,
 // fotos.html, frases.html y assets/. El código del servidor queda fuera.

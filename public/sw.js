@@ -4,13 +4,15 @@
    - Navegaciones / API: network-first (siempre datos frescos; si no hay red, cae al cache).
    - Assets estáticos: cache-first (imágenes, música, íconos).
 */
-const CACHE = "pili-v1";
+const CACHE = "pili-v2";
 const SHELL = [
   "/",
   "/invitacion",
   "/muro",
   "/fotos",
   "/frases",
+  "/historia",
+  "/juegos",
   "/manifest.webmanifest",
   "/assets/icon-192.png",
   "/assets/icon-512.png",
