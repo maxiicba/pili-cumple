@@ -4,6 +4,22 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Primer añito de Pilar 🎀</title>
+<meta name="description" content="¡Estás invitado a mi primer añito! Domingo 30 de agosto, 16 hs · Salón Mi Cielo, Malvinas Argentinas 💕" />
+
+<!-- ===== Vista previa al compartir (Open Graph / Twitter) ===== -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Primer añito de Pilar" />
+<meta property="og:title" content="Primer añito de Pilar 🎀" />
+<meta property="og:description" content="¡Estás invitado a celebrar conmigo! Domingo 30 de agosto, 16 hs · Salón Mi Cielo 💕" />
+<meta property="og:image" content="https://mi-primer-cumpleanos-pili.up.railway.app/assets/pili-sonriendo.jpeg" />
+<meta property="og:image:alt" content="Pilar sonriendo 🎀" />
+<meta property="og:url" content="https://mi-primer-cumpleanos-pili.up.railway.app/invitacion" />
+<meta property="og:locale" content="es_AR" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Primer añito de Pilar 🎀" />
+<meta name="twitter:description" content="¡Estás invitado a celebrar conmigo! Domingo 30 de agosto, 16 hs · Salón Mi Cielo 💕" />
+<meta name="twitter:image" content="https://mi-primer-cumpleanos-pili.up.railway.app/assets/pili-sonriendo.jpeg" />
+
 <link rel="icon" type="image/png" href="assets/favicon.png" />
 <link rel="apple-touch-icon" href="assets/icon-192.png" />
 <meta name="theme-color" content="#ec9bb0" />
@@ -465,22 +481,6 @@
   </section>
 
   <section class="reveal">
-    <h2 class="section-title">Mesa de regalos<span class="sub">si querés hacerme un mimo</span></h2>
-    <div class="card gift" style="text-align:center">
-      <p class="place" style="margin-bottom:14px">Tu presencia es mi mejor regalo 💕<br />Y si querés colaborar, podés hacerlo por transferencia:</p>
-      <div class="alias-box">
-        <!-- 👇 Cambiá este alias por el tuyo real -->
-        <span class="alias" id="aliasRegalo">pilar.primer.anito</span>
-        <button class="copy-btn" type="button" onclick="copiarAlias()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-          Copiar alias
-        </button>
-      </div>
-      <div class="copied" id="aliasCopied"></div>
-    </div>
-  </section>
-
-  <section class="reveal">
     <h2 class="section-title">Para tener en cuenta<span class="sub">detalles del festejo</span></h2>
     <div class="tips">
       <div class="tip"><div class="ico">🎀</div><h3>Código</h3><p>Vení cómodo y con muchas ganas de festejar</p></div>
@@ -673,22 +673,6 @@
     } else {
       // Navegadores sin IntersectionObserver: mostrar siempre.
       fabRsvp.classList.remove("hide");
-    }
-  }
-
-  /* ====== MESA DE REGALOS ====== */
-  function copiarAlias() {
-    var alias = document.getElementById("aliasRegalo").textContent.trim();
-    var aviso = document.getElementById("aliasCopied");
-    function ok() { aviso.textContent = "¡Alias copiado! 💕"; setTimeout(function () { aviso.textContent = ""; }, 2500); }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(alias).then(ok).catch(fallback);
-    } else { fallback(); }
-    function fallback() {
-      var t = document.createElement("textarea");
-      t.value = alias; document.body.appendChild(t); t.select();
-      try { document.execCommand("copy"); ok(); } catch (e) { aviso.textContent = alias; }
-      document.body.removeChild(t);
     }
   }
 
