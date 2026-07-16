@@ -6,6 +6,12 @@
 <title>Primer añito de Pilar 🎀</title>
 <meta name="description" content="¡Estás invitado a mi primer añito! Domingo 30 de agosto, 16 hs · Salón Mi Cielo, Malvinas Argentinas 💕" />
 
+<!-- La portada y la invitación viven en /invitacion. Redirigimos ahí para que la
+     música pueda arrancar sola al abrir el sobre (el gesto ocurre en esa misma página). -->
+<script>location.replace("/invitacion" + location.search);</script>
+<meta http-equiv="refresh" content="0; url=/invitacion" />
+<link rel="canonical" href="/invitacion" />
+
 <!-- ===== Vista previa al compartir (Open Graph / Twitter) ===== -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Primer añito de Pilar" />
@@ -24,109 +30,13 @@
 <link rel="apple-touch-icon" href="assets/icon-192.png" />
 <meta name="theme-color" content="#ec9bb0" />
 <link rel="manifest" href="/manifest.webmanifest" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Dancing+Script:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg: #fdeef0;
-    --text: #8a5a64;
-    --text-soft: #b08a92;
-    --pink: #f4b8c8;
-    --pink-deep: #ec9bb0;
-    --pink-light: #fad6de;
-    --gold: #e8c07d;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { background: var(--bg); }
-  body { font-family: 'Quicksand', sans-serif; color: var(--text); overflow: hidden; }
-
-  /* ====== PORTADA / SOBRE ====== */
-  .cover {
-    position: fixed; inset: 0; z-index: 50;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: radial-gradient(circle at 50% 35%, #fff2f5 0%, #f9d5df 55%, #f3bdcb 100%);
-    text-align: center; padding: 24px;
-    transition: opacity .9s ease, visibility .9s ease;
-  }
-  .cover.hide { opacity: 0; visibility: hidden; }
-  .cover .env {
-    width: min(60vw, 190px); height: auto; margin-bottom: 26px;
-    animation: gentleFloat 4.5s ease-in-out infinite;
-    filter: drop-shadow(0 18px 22px rgba(236,155,176,.5));
-  }
-  @keyframes gentleFloat { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-14px) rotate(2deg); } }
-  .cover .pre { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.3rem; color: var(--text-soft); letter-spacing: .05em; }
-  .cover .nm { font-family: 'Dancing Script', cursive; font-size: clamp(4rem, 24vw, 7rem); color: var(--pink-deep); line-height: .95; margin: 2px 0 18px; text-shadow: 0 4px 14px rgba(236,155,176,.35); }
-  .open-btn {
-    margin-top: 8px; padding: 15px 34px; border: none; border-radius: 40px;
-    background: var(--pink-deep); color: #fff; font-family: 'Quicksand', sans-serif;
-    font-size: 1.05rem; font-weight: 700; letter-spacing: .03em; cursor: pointer;
-    box-shadow: 0 12px 26px rgba(236,155,176,.55);
-    animation: pulseBtn 2.2s ease-in-out infinite;
-  }
-  .open-btn:active { transform: scale(.96); }
-  @keyframes pulseBtn { 0%,100% { transform: scale(1); box-shadow: 0 12px 26px rgba(236,155,176,.55); } 50% { transform: scale(1.06); box-shadow: 0 16px 32px rgba(236,155,176,.7); } }
-  .cover .hint { margin-top: 14px; font-size: .82rem; color: var(--text-soft); letter-spacing: .08em; }
-  .cover-inner { position: relative; z-index: 2; max-width: 440px; }
-  .cover .phrase { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.18rem; line-height: 1.55; color: var(--text); margin: 4px auto 22px; max-width: 360px; }
-  .cover-floaties { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
-  .cf {
-    position: absolute; object-fit: cover; opacity: .92; will-change: transform;
-    -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 29.6"><path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z" fill="white"/></svg>') center / 100% 100% no-repeat;
-    mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 29.6"><path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z" fill="white"/></svg>') center / 100% 100% no-repeat;
-    filter: drop-shadow(0 1px 1px rgba(255,255,255,.9)) drop-shadow(0 10px 16px rgba(236,155,176,.55));
-  }
-  .cf1 { width: 132px; height: 132px; top: 9%;  left: 6%;  animation: roamA 24s ease-in-out infinite; }
-  .cf2 { width: 152px; height: 152px; top: 13%; right: 7%; animation: roamB 28s ease-in-out infinite; }
-  .cf3 { width: 118px; height: 118px; bottom: 13%; left: 8%; animation: roamC 26s ease-in-out infinite; }
-  .cf4 { width: 142px; height: 142px; bottom: 8%; right: 6%; animation: roamA 30s ease-in-out infinite reverse; }
-  @keyframes roamA { 0%,100%{transform:translate(0,0) rotate(0)} 25%{transform:translate(40px,60px) rotate(8deg)} 50%{transform:translate(-30px,120px) rotate(-6deg)} 75%{transform:translate(25px,50px) rotate(5deg)} }
-  @keyframes roamB { 0%,100%{transform:translate(0,0) rotate(0)} 25%{transform:translate(-50px,40px) rotate(-7deg)} 50%{transform:translate(30px,-60px) rotate(6deg)} 75%{transform:translate(-20px,30px) rotate(-4deg)} }
-  @keyframes roamC { 0%,100%{transform:translate(0,0) rotate(0)} 30%{transform:translate(45px,-50px) rotate(7deg)} 60%{transform:translate(-35px,-90px) rotate(-8deg)} 85%{transform:translate(20px,-30px) rotate(4deg)} }
-  @media (max-width: 480px) {
-    .cf1 { width: 80px; height: 80px; }
-    .cf2 { width: 90px; height: 90px; }
-    .cf3 { width: 72px; height: 72px; }
-    .cf4 { width: 84px; height: 84px; }
-  }
+  html, body { margin: 0; height: 100%; background: radial-gradient(circle at 50% 35%, #fff2f5 0%, #f9d5df 55%, #f3bdcb 100%); }
+  body { font-family: 'Quicksand', sans-serif; color: #8a5a64; display: flex; align-items: center; justify-content: center; }
+  a { color: #ec9bb0; font-weight: 700; }
 </style>
 </head>
 <body>
-
-<!-- ===== PORTADA ===== -->
-<div class="cover" id="cover">
-  <div class="cover-floaties" aria-hidden="true">
-    <img class="cf cf1" src="assets/pili-risa.jpeg" alt="" />
-    <img class="cf cf2" src="assets/pili-lentes.jpeg" alt="" />
-    <img class="cf cf3" src="assets/pili-rio.jpeg" alt="" />
-    <img class="cf cf4" src="assets/pili-mono.jpeg" alt="" />
-  </div>
-  <div class="cover-inner">
-    <img class="env" src="assets/bunny.png" alt="Conejita" />
-    <p class="pre">Mi primer añito</p>
-    <div class="nm">Pilar</div>
-    <p class="phrase">Ha sido un año de grandes descubrimientos, sonrisas y mucho aprendizaje. ¡Te espero para soplar mi primera velita, llena de magia y alegría!</p>
-    <button class="open-btn" id="openBtn">Abrir invitación 🎀</button>
-    <p class="hint">con música ♫</p>
-  </div>
-</div>
-
-<script>
-  // Al abrir, hacemos el fade-out del sobre y vamos a la invitación.
-  // La música arranca en la página de la invitación (este click cuenta como gesto del usuario).
-  document.getElementById("openBtn").addEventListener("click", function () {
-    document.getElementById("cover").classList.add("hide");
-    setTimeout(function () { window.location.href = "/invitacion"; }, 600);
-  });
-
-  // PWA: registrar el service worker.
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function () {});
-    });
-  }
-</script>
-
+  <p>Abriendo la invitación de Pilar… <a href="/invitacion">Entrar 🎀</a></p>
 </body>
 </html>

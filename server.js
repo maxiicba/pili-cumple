@@ -411,6 +411,30 @@ app.delete("/api/admin/timeline/:id", requireAdmin, async (req, res) => {
   }
 });
 
+// Reordenar la historia: recibe la lista de IDs en el orden deseado y reescribe las posiciones.
+app.post("/api/admin/timeline/reorder", requireAdmin, async (req, res) => {
+  const order = Array.isArray(req.body.order)
+    ? req.body.order.map((x) => parseInt(x, 10)).filter((n) => Number.isInteger(n))
+    : null;
+  if (!order || !order.length)
+    return res.status(400).json({ error: "Orden inválido" });
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    for (let i = 0; i < order.length; i++) {
+      await client.query("UPDATE timeline SET position=$1 WHERE id=$2", [i, order[i]]);
+    }
+    await client.query("COMMIT");
+    res.json({ ok: true });
+  } catch (e) {
+    await client.query("ROLLBACK").catch(() => {});
+    console.error(e);
+    res.status(500).json({ error: "No se pudo reordenar" });
+  } finally {
+    client.release();
+  }
+});
+
 /* ====== TRIVIA ("¿Cuánto conocés a Pili?") ====== */
 app.get("/api/trivia", async (req, res) => {
   try {

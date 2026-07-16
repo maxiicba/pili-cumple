@@ -81,6 +81,15 @@
   .adm-msg { margin-top:10px; min-height:1.1em; font-size:.88rem; font-weight:600; }
   .item .meta .ord { font-size:.78rem; color:var(--text-soft); }
 
+  /* Botones para reordenar (mover antes / después) */
+  .ord-row { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:10px; }
+  .ord-btn { flex:1; background:var(--pink-light); border:none; color:var(--pink-deep); border-radius:10px;
+    padding:7px 0; cursor:pointer; font-family:inherit; font-weight:700; font-size:.95rem; transition:background .15s, transform .1s; }
+  .ord-btn:hover:not(:disabled) { background:var(--pink); }
+  .ord-btn:active:not(:disabled) { transform:scale(.94); }
+  .ord-btn:disabled { opacity:.35; cursor:default; }
+  .ord-pos { flex:0 0 auto; min-width:22px; text-align:center; font-weight:700; color:var(--pink-deep); font-size:.82rem; }
+
   @media (max-width:600px){
     .wrap { padding:20px 14px 48px; }
     header .ttl { font-size:1.9rem; }
@@ -346,14 +355,40 @@
   }
 
   /* ====== HISTORIA ====== */
+  var timelineItems = []; // orden actual en memoria, para reordenar sin recargar
   async function cargarHistoria(){
-    var r = await fetch("/api/timeline"); if(!r.ok) return; var list = await r.json();
+    var r = await fetch("/api/timeline"); if(!r.ok) return;
+    timelineItems = await r.json();
+    renderHistoria();
+  }
+  function renderHistoria(){
+    var list = timelineItems;
     document.getElementById("timelineEmpty").style.display = list.length ? "none" : "block";
-    document.getElementById("timelineGrid").innerHTML = list.map(function(m){
+    document.getElementById("timelineGrid").innerHTML = list.map(function(m, i){
+      var subir = "<button class='ord-btn' title='Mover antes' onclick=\"moverHistoria("+m.id+",-1)\" "+(i===0?"disabled":"")+">◀</button>";
+      var bajar = "<button class='ord-btn' title='Mover después' onclick=\"moverHistoria("+m.id+",1)\" "+(i===list.length-1?"disabled":"")+">▶</button>";
       return "<div class='item'><button class='del' onclick=\"delItem('timeline',"+m.id+")\">🗑️</button>"+
         "<img src='"+esc(m.image_url)+"' alt='' loading='lazy' /><div class='meta'><div class='n'>"+esc(m.title)+"</div>"+
-        (m.body?"<div class='m'>"+esc(m.body)+"</div>":"")+"</div></div>";
+        (m.body?"<div class='m'>"+esc(m.body)+"</div>":"")+
+        "<div class='ord-row'>"+subir+"<span class='ord-pos'>"+(i+1)+"</span>"+bajar+"</div>"+
+        "</div></div>";
     }).join("");
+  }
+  async function moverHistoria(id, dir){
+    var i = timelineItems.findIndex(function(x){ return x.id === id; });
+    if (i < 0) return;
+    var j = i + dir;
+    if (j < 0 || j >= timelineItems.length) return;
+    var tmp = timelineItems[i]; timelineItems[i] = timelineItems[j]; timelineItems[j] = tmp;
+    renderHistoria(); // se ve el cambio al instante
+    var order = timelineItems.map(function(x){ return x.id; });
+    try {
+      var r = await fetch("/api/admin/timeline/reorder", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ order: order })
+      });
+      if (!r.ok) throw new Error();
+    } catch(e){ alert("No se pudo guardar el nuevo orden"); cargarHistoria(); }
   }
   async function subirHistoria(e){
     e.preventDefault();

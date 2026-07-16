@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="cover-open">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -376,9 +376,75 @@
   body.post-evento .solo-post { display: block; }
   body.post-evento .ocultar-post { display: none !important; }
   .album-banner .card { background: linear-gradient(160deg, #fff6f9, #ffe6ec); }
+
+  /* ====== PORTADA / SOBRE (se abre con un toque → arranca la música) ====== */
+  html.cover-open, body.cover-open { overflow: hidden; }
+  .cover {
+    position: fixed; inset: 0; z-index: 120;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 35%, #fff2f5 0%, #f9d5df 55%, #f3bdcb 100%);
+    text-align: center; padding: 24px;
+    transition: opacity .9s ease, visibility .9s ease;
+  }
+  .cover.hide { opacity: 0; visibility: hidden; }
+  .cover .env {
+    width: min(60vw, 190px); height: auto; margin-bottom: 26px;
+    animation: gentleFloat 4.5s ease-in-out infinite;
+    filter: drop-shadow(0 18px 22px rgba(236,155,176,.5));
+  }
+  .cover .pre { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.3rem; color: var(--text-soft); letter-spacing: .05em; }
+  .cover .nm { font-family: 'Dancing Script', cursive; font-size: clamp(4rem, 24vw, 7rem); color: var(--pink-deep); line-height: .95; margin: 2px 0 18px; text-shadow: 0 4px 14px rgba(236,155,176,.35); }
+  .open-btn {
+    margin-top: 8px; padding: 15px 34px; border: none; border-radius: 40px;
+    background: var(--pink-deep); color: #fff; font-family: 'Quicksand', sans-serif;
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .03em; cursor: pointer;
+    box-shadow: 0 12px 26px rgba(236,155,176,.55);
+    animation: pulseBtn 2.2s ease-in-out infinite;
+  }
+  .open-btn:active { transform: scale(.96); }
+  @keyframes pulseBtn { 0%,100% { transform: scale(1); box-shadow: 0 12px 26px rgba(236,155,176,.55); } 50% { transform: scale(1.06); box-shadow: 0 16px 32px rgba(236,155,176,.7); } }
+  .cover .hint { margin-top: 14px; font-size: .82rem; color: var(--text-soft); letter-spacing: .08em; }
+  .cover-inner { position: relative; z-index: 2; max-width: 440px; }
+  .cover .phrase { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.18rem; line-height: 1.55; color: var(--text); margin: 4px auto 22px; max-width: 360px; }
+  .cover-floaties { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+  .cf {
+    position: absolute; object-fit: cover; opacity: .92; will-change: transform;
+    -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 29.6"><path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z" fill="white"/></svg>') center / 100% 100% no-repeat;
+    mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 29.6"><path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z" fill="white"/></svg>') center / 100% 100% no-repeat;
+    filter: drop-shadow(0 1px 1px rgba(255,255,255,.9)) drop-shadow(0 10px 16px rgba(236,155,176,.55));
+  }
+  .cf1 { width: 132px; height: 132px; top: 9%;  left: 6%;  animation: roamA 24s ease-in-out infinite; }
+  .cf2 { width: 152px; height: 152px; top: 13%; right: 7%; animation: roamB 28s ease-in-out infinite; }
+  .cf3 { width: 118px; height: 118px; bottom: 13%; left: 8%; animation: roamC 26s ease-in-out infinite; }
+  .cf4 { width: 142px; height: 142px; bottom: 8%; right: 6%; animation: roamA 30s ease-in-out infinite reverse; }
+  @media (max-width: 480px) {
+    .cf1 { width: 80px; height: 80px; }
+    .cf2 { width: 90px; height: 90px; }
+    .cf3 { width: 72px; height: 72px; }
+    .cf4 { width: 84px; height: 84px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- ===== PORTADA / SOBRE ===== -->
+<!-- Se abre con un toque: ese gesto del usuario permite que la música arranque sola. -->
+<div class="cover" id="cover">
+  <div class="cover-floaties" aria-hidden="true">
+    <img class="cf cf1" src="assets/pili-risa.jpeg" alt="" />
+    <img class="cf cf2" src="assets/pili-lentes.jpeg" alt="" />
+    <img class="cf cf3" src="assets/pili-rio.jpeg" alt="" />
+    <img class="cf cf4" src="assets/pili-mono.jpeg" alt="" />
+  </div>
+  <div class="cover-inner">
+    <img class="env" src="assets/bunny.png" alt="Conejita" />
+    <p class="pre">Mi primer añito</p>
+    <div class="nm">Pilar</div>
+    <p class="phrase">Ha sido un año de grandes descubrimientos, sonrisas y mucho aprendizaje. ¡Te espero para soplar mi primera velita, llena de magia y alegría!</p>
+    <button class="open-btn" id="openBtn">Abrir invitación 🎀</button>
+    <p class="hint">con música ♫</p>
+  </div>
+</div>
 
 <!-- ===== AUDIO DE FONDO (fallback si no hay canciones cargadas en el admin) ===== -->
 <audio id="bgm" src="assets/musica.mp3" loop preload="none"></audio>
@@ -671,6 +737,35 @@
     else musicBtn.classList.remove("playing");
   }
 
+  // "Puente" para arrancar la música desde el gesto de abrir la portada.
+  // El modo activo (playlist o mp3) registra acá su función de arranque.
+  var startRequested = false;   // el usuario ya abrió la portada
+  var requestStart = null;      // función de arranque del modo activo (se setea al inicializar)
+  function pedirArranque() {
+    startRequested = true;
+    if (!musicaApagada() && typeof requestStart === "function") requestStart();
+  }
+
+  /* ====== PORTADA / SOBRE ====== */
+  // Abrir la portada cuenta como gesto del usuario: recién ahí el navegador
+  // permite que el audio (mp3 o YouTube) suene solo.
+  var cover = document.getElementById("cover");
+  var openBtn = document.getElementById("openBtn");
+  function abrirInvitacion() {
+    if (!cover || cover.classList.contains("hide")) return;
+    cover.classList.add("hide");
+    document.documentElement.classList.remove("cover-open");
+    document.body.classList.remove("cover-open");
+    pedirArranque();
+    setTimeout(function () { if (cover && cover.parentNode) cover.parentNode.removeChild(cover); }, 1000);
+  }
+  if (openBtn) openBtn.addEventListener("click", abrirInvitacion);
+  if (cover) cover.addEventListener("click", function (e) {
+    // Tocar en cualquier parte de la portada también entra (además del botón).
+    if (e.target === openBtn) return;
+    abrirInvitacion();
+  });
+
   // Elegimos el modo según haya o no canciones cargadas desde el panel admin:
   //  - con canciones  → reproductor de playlist de YouTube en pantalla
   //  - sin canciones   → música de fondo mp3 (comportamiento de siempre)
@@ -751,6 +846,12 @@
       document.head.appendChild(tag);
     }
 
+    // El modo playlist queda como responsable de arrancar la música cuando se abre la portada.
+    requestStart = function () {
+      if (musicaApagada()) return;
+      if (ready && ytPlayer && !isPlaying) ytPlayer.playVideo();
+    };
+
     function createPlayer() {
       if (ytPlayer) return;
       ytPlayer = new YT.Player("ytplayer", {
@@ -760,7 +861,12 @@
         events: {
           onReady: function () {
             ready = true; refreshUI();
-            if (!musicaApagada()) armAutostart();
+            if (musicaApagada()) return;
+            // Si el usuario ya abrió la portada, arrancamos ya.
+            if (startRequested) ytPlayer.playVideo();
+            // Igual dejamos armado el arranque por gesto como red de contención
+            // (por si el navegador bloquea el arranque programático).
+            armAutostart();
           },
           onStateChange: onState,
           onError: onErr
@@ -810,19 +916,28 @@
       });
     }
 
+    // Fallback: si el navegador bloquea el arranque, esperamos el primer gesto.
+    function armAutostart() {
+      function arrancar() {
+        window.removeEventListener("pointerdown", arrancar);
+        window.removeEventListener("scroll", arrancar);
+        if (!musicaApagada() && bgm.paused) startMusic().catch(function () {});
+      }
+      window.addEventListener("pointerdown", arrancar);
+      window.addEventListener("scroll", arrancar, { passive: true });
+    }
+
+    // El modo mp3 queda como responsable de arrancar la música al abrir la portada.
+    requestStart = function () {
+      if (!musicaApagada() && bgm.paused) startMusic().catch(function () {});
+    };
+
     if (musicaApagada()) {
       setPlayingUI(false);
     } else {
-      startMusic().catch(function () {
-        setPlayingUI(false);
-        function arrancar() {
-          if (!musicaApagada() && bgm.paused) startMusic().catch(function () {});
-          window.removeEventListener("pointerdown", arrancar);
-          window.removeEventListener("scroll", arrancar);
-        }
-        window.addEventListener("pointerdown", arrancar);
-        window.addEventListener("scroll", arrancar, { passive: true });
-      });
+      // Intento inmediato (por si el navegador lo permite) y, si no, arranca con el primer gesto
+      // o al abrir la portada (que llama a requestStart).
+      startMusic().catch(function () { setPlayingUI(false); armAutostart(); });
     }
 
     musicBtn.addEventListener("click", function () {

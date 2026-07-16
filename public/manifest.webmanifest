@@ -2,7 +2,7 @@
   "name": "Primer añito de Pilar",
   "short_name": "Pilar 🎀",
   "description": "Invitación al primer añito de Pilar",
-  "start_url": "/",
+  "start_url": "/invitacion",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
