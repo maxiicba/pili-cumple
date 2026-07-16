@@ -71,10 +71,17 @@ async function init() {
       prediction TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    CREATE TABLE IF NOT EXISTS songs (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      youtube_id TEXT NOT NULL,
+      position INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
   `);
 
   await seedDefaults();
-  console.log("[db] Tablas listas (photos, messages, rsvps, gallery, timeline, trivia, predictions).");
+  console.log("[db] Tablas listas (photos, messages, rsvps, gallery, timeline, trivia, predictions, songs).");
 }
 
 // Carga contenido inicial (la galería, la historia y unas preguntas de ejemplo)

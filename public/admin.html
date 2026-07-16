@@ -127,6 +127,7 @@
       <button class="tab" data-v="gallery" onclick="showTab('gallery')">Galería</button>
       <button class="tab" data-v="timeline" onclick="showTab('timeline')">Historia</button>
       <button class="tab" data-v="trivia" onclick="showTab('trivia')">Trivia</button>
+      <button class="tab" data-v="songs" onclick="showTab('songs')">Música</button>
       <button class="tab" data-v="predictions" onclick="showTab('predictions')">Predicciones</button>
       <button class="tab" data-v="qr" onclick="showTab('qr')">QR muro</button>
     </div>
@@ -196,6 +197,21 @@
       <div class="empty" id="triviaEmpty" style="display:none">Sin preguntas cargadas.</div>
     </div>
 
+    <div class="view" id="v-songs">
+      <form class="adm-form" id="songForm" onsubmit="return agregarCancion(event)">
+        <h3>Agregar canción al reproductor</h3>
+        <div class="adm-row">
+          <input type="text" id="songTitle" placeholder="Título (ej: Bruno Mars - Marry You)" />
+          <input type="text" id="songUrl" placeholder="Link de YouTube (https://youtu.be/…)" required />
+          <button class="dl-btn" type="submit">＋ Agregar</button>
+        </div>
+        <p class="adm-hint">Pegá el link de YouTube (youtube.com/watch?v=… o youtu.be/…). Las canciones suenan en la invitación en el orden en que las agregás.</p>
+        <div class="adm-msg" id="songMsg"></div>
+      </form>
+      <div class="grid" id="songGrid" style="grid-template-columns:1fr"></div>
+      <div class="empty" id="songEmpty" style="display:none">Sin canciones todavía. Si no agregás ninguna, suena la música de fondo por defecto.</div>
+    </div>
+
     <div class="view" id="v-predictions">
       <div class="grid" id="predGrid" style="grid-template-columns:1fr"></div>
       <div class="empty" id="predEmpty" style="display:none">Sin predicciones todavía.</div>
@@ -231,7 +247,7 @@
     document.querySelectorAll(".view").forEach(function(el){ el.classList.toggle("active", el.id==="v-"+v); });
   }
 
-  async function cargarTodo(){ await Promise.all([cargarRsvps(), cargarFotos(), cargarMensajes(), cargarGaleria(), cargarHistoria(), cargarTrivia(), cargarPredicciones()]); }
+  async function cargarTodo(){ await Promise.all([cargarRsvps(), cargarFotos(), cargarMensajes(), cargarGaleria(), cargarHistoria(), cargarTrivia(), cargarCanciones(), cargarPredicciones()]); }
 
   async function cargarRsvps(){
     var r = await fetch("/api/admin/rsvps"); if(!r.ok) return; var list = await r.json();
@@ -394,6 +410,36 @@
       document.getElementById("triviaForm").reset();
       cargarTrivia();
     } catch(err){ msg.style.color="#c0566a"; msg.textContent="No se pudo guardar"; }
+    return false;
+  }
+
+  /* ====== MÚSICA (playlist YouTube) ====== */
+  async function cargarCanciones(){
+    var r = await fetch("/api/songs"); if(!r.ok) return; var list = await r.json();
+    document.getElementById("songEmpty").style.display = list.length ? "none" : "block";
+    document.getElementById("songGrid").innerHTML = list.map(function(s, i){
+      return "<div class='note-card'><button class='del' onclick=\"delItem('songs',"+s.id+")\">🗑️</button>"+
+        "<div class='q' style='font-style:normal;font-weight:700;color:var(--pink-deep)'>"+(i+1)+". "+esc(s.title)+"</div>"+
+        "<a class='by' style='text-decoration:none' target='_blank' rel='noopener' href='https://www.youtube.com/watch?v="+esc(s.youtube_id)+"'>▶ Ver en YouTube</a></div>";
+    }).join("");
+  }
+  async function agregarCancion(e){
+    e.preventDefault();
+    var msg = document.getElementById("songMsg");
+    var url = document.getElementById("songUrl").value.trim();
+    var title = document.getElementById("songTitle").value.trim();
+    if (!url){ msg.style.color="#c0566a"; msg.textContent="Pegá el link de YouTube"; return false; }
+    msg.style.color="var(--text-soft)"; msg.textContent="Guardando…";
+    try {
+      var r = await fetch("/api/admin/songs", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ title:title, url:url })
+      });
+      if (!r.ok){ var d = await r.json().catch(function(){return{};}); throw new Error(d.error||""); }
+      msg.style.color="#3a9b6a"; msg.textContent="¡Canción agregada! 🎶";
+      document.getElementById("songForm").reset();
+      cargarCanciones();
+    } catch(err){ msg.style.color="#c0566a"; msg.textContent = err.message || "No se pudo agregar"; }
     return false;
   }
 

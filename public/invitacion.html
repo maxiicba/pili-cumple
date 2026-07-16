@@ -102,6 +102,53 @@
   .music-btn.playing .disc { animation: spin 3s linear infinite; transform-origin: center; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ====== REPRODUCTOR DE MÚSICA (playlist YouTube) ====== */
+  /* Cerrado: lo deslizamos fuera de pantalla (no display:none) para que YouTube
+     siga sonando aunque el panel esté oculto. */
+  .player {
+    position: fixed; top: 74px; right: 16px; z-index: 39;
+    width: min(300px, calc(100vw - 32px));
+    background: rgba(255,255,255,.96); backdrop-filter: blur(10px);
+    border-radius: 20px; box-shadow: 0 16px 40px rgba(236,155,176,.5);
+    padding: 14px; color: var(--text);
+    transform: translateX(130%); opacity: 0; pointer-events: none;
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s;
+  }
+  .player.open { transform: translateX(0); opacity: 1; pointer-events: auto; }
+  .player-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .player-now { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+  .player-title { font-weight: 700; color: var(--pink-deep); font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player-close { margin-left: auto; background: none; border: none; color: var(--text-soft); font-size: 1.1rem; cursor: pointer; line-height: 1; padding: 4px; }
+  /* Ecualizador animado (indica que suena) */
+  .player-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; flex: 0 0 auto; }
+  .player-eq i { width: 3px; height: 100%; background: var(--pink-deep); border-radius: 2px; transform-origin: bottom; animation: eq 1s ease-in-out infinite; }
+  .player-eq i:nth-child(2) { animation-delay: .25s; }
+  .player-eq i:nth-child(3) { animation-delay: .5s; }
+  .player.paused .player-eq i { animation-play-state: paused; }
+  @keyframes eq { 0%,100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+  .player-video { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 10px; }
+  .player-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .player-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 10px; }
+  .player-controls button {
+    background: var(--pink-light); border: none; color: var(--pink-deep); cursor: pointer;
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; transition: transform .15s, background .15s;
+  }
+  .player-controls button:hover { background: var(--pink); }
+  .player-controls button:active { transform: scale(.9); }
+  .player-controls .p-play { width: 50px; height: 50px; background: var(--pink-deep); color: #fff; font-size: 1.2rem; }
+  .player-controls .p-play:hover { background: var(--pink-deep); filter: brightness(1.05); }
+  .player-list { list-style: none; margin: 0; padding: 0; max-height: 168px; overflow-y: auto; }
+  .player-list li {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; cursor: pointer;
+    font-size: .88rem; color: var(--text); transition: background .15s;
+  }
+  .player-list li:hover { background: var(--pink-light); }
+  .player-list li.active { background: var(--pink-light); font-weight: 700; color: var(--pink-deep); }
+  .player-list li .idx { flex: 0 0 auto; width: 18px; text-align: center; color: var(--text-soft); font-size: .8rem; }
+  .player-list li.active .idx { color: var(--pink-deep); }
+  .player-list li .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   /* ====== BOTÓN FLOTANTE: confirmar asistencia ====== */
   .fab-rsvp {
     position: fixed; right: 16px; bottom: 18px; z-index: 41;
@@ -333,8 +380,8 @@
 </head>
 <body>
 
-<!-- ===== AUDIO ===== -->
-<audio id="bgm" src="assets/musica.mp3" loop preload="auto"></audio>
+<!-- ===== AUDIO DE FONDO (fallback si no hay canciones cargadas en el admin) ===== -->
+<audio id="bgm" src="assets/musica.mp3" loop preload="none"></audio>
 
 <!-- ===== CONEJITO FLOTANTE EN LA ESQUINA ===== -->
 <div class="bunny-frame">
@@ -353,6 +400,30 @@
 <button class="music-btn" id="musicBtn" title="Música" aria-label="Música">
   <svg class="disc" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
 </button>
+
+<!-- ===== REPRODUCTOR DE PLAYLIST (se muestra solo si hay canciones cargadas) ===== -->
+<div class="player paused" id="player" aria-hidden="true" hidden>
+  <div class="player-head">
+    <div class="player-now">
+      <span class="player-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="player-title" id="playerTitle">Playlist de Pili</div>
+    </div>
+    <button class="player-close" id="playerClose" aria-label="Cerrar reproductor">✕</button>
+  </div>
+  <div class="player-video"><div id="ytplayer"></div></div>
+  <div class="player-controls">
+    <button class="p-prev" id="pPrev" aria-label="Canción anterior">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </button>
+    <button class="p-play" id="pPlay" aria-label="Reproducir o pausar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path id="pPlayPath" d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button class="p-next" id="pNext" aria-label="Canción siguiente">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+    </button>
+  </div>
+  <ul class="player-list" id="playerList"></ul>
+</div>
 
 <!-- ===== BOTÓN FLOTANTE: CONFIRMAR ASISTENCIA ===== -->
 <button class="fab-rsvp" id="fabRsvp" title="Confirmar asistencia" aria-label="Confirmar asistencia">
@@ -595,47 +666,170 @@
   function recordarPreferencia(apagada) {
     try { localStorage.setItem(MUSIC_KEY, apagada ? "off" : "on"); } catch (e) {}
   }
-
   function setPlayingUI(on) {
     if (on) musicBtn.classList.add("playing");
     else musicBtn.classList.remove("playing");
   }
 
-  function startMusic() {
-    bgm.volume = 0.0;
-    return bgm.play().then(function () {
-      setPlayingUI(true);
-      // fade-in suave del volumen
-      var v = 0;
-      var fade = setInterval(function () {
-        v += 0.05;
-        if (v >= 0.55) { v = 0.55; clearInterval(fade); }
-        bgm.volume = v;
-      }, 120);
-    });
-  }
+  // Elegimos el modo según haya o no canciones cargadas desde el panel admin:
+  //  - con canciones  → reproductor de playlist de YouTube en pantalla
+  //  - sin canciones   → música de fondo mp3 (comportamiento de siempre)
+  fetch("/api/songs")
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (list) {
+      if (Array.isArray(list) && list.length) initPlaylistMode(list);
+      else initBackgroundMode();
+    })
+    .catch(function () { initBackgroundMode(); });
 
-  // Solo arranca sola si el usuario NO la pausó antes (lo recordamos en localStorage).
-  if (musicaApagada()) {
-    setPlayingUI(false);
-  } else {
-    startMusic().catch(function () {
-      // Si el navegador bloquea el autoplay, arranca con el primer toque/scroll.
-      setPlayingUI(false);
+  /* ---- Modo A: playlist de YouTube (reproductor visible) ---- */
+  function initPlaylistMode(songs) {
+    var player = document.getElementById("player");
+    var playerTitle = document.getElementById("playerTitle");
+    var playerList = document.getElementById("playerList");
+    var pPlay = document.getElementById("pPlay");
+    var pPlayPath = document.getElementById("pPlayPath");
+    var pPrev = document.getElementById("pPrev");
+    var pNext = document.getElementById("pNext");
+    var playerClose = document.getElementById("playerClose");
+    var PATH_PLAY = "M8 5v14l11-7z";
+    var PATH_PAUSE = "M6 5h4v14H6zm8 0h4v14h-4z";
+
+    var ytPlayer = null, curIdx = 0, isPlaying = false, ready = false, errStreak = 0, autoArmed = false;
+
+    player.hidden = false;
+
+    // Lista de canciones (armada con DOM, sin inyectar HTML)
+    var lis = [];
+    songs.forEach(function (s, i) {
+      var li = document.createElement("li");
+      var idx = document.createElement("span"); idx.className = "idx"; idx.textContent = (i + 1);
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = s.title || "Canción";
+      li.appendChild(idx); li.appendChild(nm);
+      li.addEventListener("click", function () { userPlayIndex(i); });
+      playerList.appendChild(li); lis.push(li);
+    });
+
+    function refreshUI() {
+      playerTitle.textContent = (songs[curIdx] && songs[curIdx].title) || "Playlist de Pili";
+      lis.forEach(function (li, i) { li.classList.toggle("active", i === curIdx); });
+      player.classList.toggle("paused", !isPlaying);
+      pPlayPath.setAttribute("d", isPlaying ? PATH_PAUSE : PATH_PLAY);
+      setPlayingUI(isPlaying);
+    }
+
+    function playCurrent() { if (ytPlayer && ytPlayer.loadVideoById) ytPlayer.loadVideoById(songs[curIdx].youtube_id); }
+    function userPlayIndex(i) { curIdx = (i + songs.length) % songs.length; errStreak = 0; recordarPreferencia(false); playCurrent(); }
+
+    pPlay.addEventListener("click", function () {
+      if (!ready) return;
+      if (isPlaying) { ytPlayer.pauseVideo(); recordarPreferencia(true); }
+      else { ytPlayer.playVideo(); recordarPreferencia(false); }
+    });
+    pPrev.addEventListener("click", function () { if (ready) userPlayIndex(curIdx - 1); });
+    pNext.addEventListener("click", function () { if (ready) userPlayIndex(curIdx + 1); });
+
+    // El botón flotante abre/cierra el panel (la música sigue sonando aunque se cierre).
+    musicBtn.addEventListener("click", function () {
+      var open = player.classList.toggle("open");
+      player.setAttribute("aria-hidden", open ? "false" : "true");
+    });
+    playerClose.addEventListener("click", function () {
+      player.classList.remove("open"); player.setAttribute("aria-hidden", "true");
+    });
+
+    // Cargar la API de YouTube (respetando cualquier callback previo).
+    var prevReady = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function () {
+      if (typeof prevReady === "function") { try { prevReady(); } catch (e) {} }
+      createPlayer();
+    };
+    if (window.YT && window.YT.Player) createPlayer();
+    else {
+      var tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+
+    function createPlayer() {
+      if (ytPlayer) return;
+      ytPlayer = new YT.Player("ytplayer", {
+        width: "100%", height: "100%",
+        videoId: songs[0].youtube_id,
+        playerVars: { autoplay: 0, playsinline: 1, rel: 0, modestbranding: 1, controls: 0 },
+        events: {
+          onReady: function () {
+            ready = true; refreshUI();
+            if (!musicaApagada()) armAutostart();
+          },
+          onStateChange: onState,
+          onError: onErr
+        }
+      });
+    }
+
+    // El autoplay con sonido está bloqueado hasta que el usuario interactúe:
+    // arrancamos con el primer toque o scroll (igual que la música de fondo).
+    function armAutostart() {
+      if (autoArmed) return; autoArmed = true;
       function arrancar() {
-        if (!musicaApagada() && bgm.paused) startMusic().catch(function () {});
         window.removeEventListener("pointerdown", arrancar);
         window.removeEventListener("scroll", arrancar);
+        if (!musicaApagada() && !isPlaying && ytPlayer) ytPlayer.playVideo();
       }
       window.addEventListener("pointerdown", arrancar);
       window.addEventListener("scroll", arrancar, { passive: true });
-    });
+    }
+
+    function onState(e) {
+      if (e.data === YT.PlayerState.PLAYING) { isPlaying = true; errStreak = 0; refreshUI(); }
+      else if (e.data === YT.PlayerState.PAUSED) { isPlaying = false; refreshUI(); }
+      else if (e.data === YT.PlayerState.ENDED) { curIdx = (curIdx + 1) % songs.length; refreshUI(); playCurrent(); }
+    }
+
+    function onErr() {
+      // Video no embebible / no disponible: saltamos al siguiente sin quedar en loop.
+      errStreak++;
+      if (errStreak >= songs.length) { isPlaying = false; refreshUI(); return; }
+      curIdx = (curIdx + 1) % songs.length; refreshUI(); playCurrent();
+    }
   }
 
-  musicBtn.addEventListener("click", function () {
-    if (bgm.paused) { bgm.play(); setPlayingUI(true); recordarPreferencia(false); }
-    else { bgm.pause(); setPlayingUI(false); recordarPreferencia(true); }
-  });
+  /* ---- Modo B: música de fondo mp3 (si no hay canciones cargadas) ---- */
+  function initBackgroundMode() {
+    function startMusic() {
+      bgm.volume = 0.0;
+      return bgm.play().then(function () {
+        setPlayingUI(true);
+        var v = 0;
+        var fade = setInterval(function () {
+          v += 0.05;
+          if (v >= 0.55) { v = 0.55; clearInterval(fade); }
+          bgm.volume = v;
+        }, 120);
+      });
+    }
+
+    if (musicaApagada()) {
+      setPlayingUI(false);
+    } else {
+      startMusic().catch(function () {
+        setPlayingUI(false);
+        function arrancar() {
+          if (!musicaApagada() && bgm.paused) startMusic().catch(function () {});
+          window.removeEventListener("pointerdown", arrancar);
+          window.removeEventListener("scroll", arrancar);
+        }
+        window.addEventListener("pointerdown", arrancar);
+        window.addEventListener("scroll", arrancar, { passive: true });
+      });
+    }
+
+    musicBtn.addEventListener("click", function () {
+      if (bgm.paused) { bgm.play(); setPlayingUI(true); recordarPreferencia(false); }
+      else { bgm.pause(); setPlayingUI(false); recordarPreferencia(true); }
+    });
+  }
 
   /* ====== BOTÓN FLOTANTE: CONFIRMAR ASISTENCIA ====== */
   var fabRsvp = document.getElementById("fabRsvp");

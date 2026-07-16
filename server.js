@@ -495,6 +495,62 @@ app.delete("/api/admin/predictions/:id", requireAdmin, async (req, res) => {
   }
 });
 
+/* ====== PLAYLIST DE CANCIONES (YouTube) ====== */
+// Acepta cualquier formato de link de YouTube (o el ID pelado) y devuelve el ID de 11 chars.
+function extractYouTubeId(input) {
+  const s = String(input || "").trim();
+  if (!s) return null;
+  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s; // ya es un ID
+  let m;
+  m = s.match(/youtu\.be\/([A-Za-z0-9_-]{11})/); // youtu.be/ID
+  if (m) return m[1];
+  m = s.match(/[?&]v=([A-Za-z0-9_-]{11})/); // youtube.com/watch?v=ID (incl. music.youtube.com)
+  if (m) return m[1];
+  m = s.match(/\/(?:embed|shorts|v|live)\/([A-Za-z0-9_-]{11})/); // /embed/ID, /shorts/ID, /live/ID
+  if (m) return m[1];
+  return null;
+}
+
+app.get("/api/songs", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, title, youtube_id FROM songs ORDER BY position ASC, id ASC"
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo cargar la playlist" });
+  }
+});
+
+app.post("/api/admin/songs", requireAdmin, async (req, res) => {
+  try {
+    const youtubeId = extractYouTubeId(req.body.url || req.body.youtube_id);
+    if (!youtubeId)
+      return res.status(400).json({ error: "El link de YouTube no es válido" });
+    let title = (req.body.title || "").trim();
+    if (!title) title = "Canción";
+    const { rows } = await pool.query(
+      "INSERT INTO songs (title, youtube_id, position) VALUES ($1,$2, COALESCE((SELECT MAX(position) FROM songs),0)+1) RETURNING id, title, youtube_id",
+      [title.slice(0, 120), youtubeId]
+    );
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo agregar la canción" });
+  }
+});
+
+app.delete("/api/admin/songs/:id", requireAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM songs WHERE id=$1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo borrar" });
+  }
+});
+
 /* ====== ARCHIVOS ESTÁTICOS Y PÁGINAS ====== */
 // Solo se sirve la carpeta public/: index.html, muro.html, admin.html,
 // fotos.html, frases.html y assets/. El código del servidor queda fuera.
