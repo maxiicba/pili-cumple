@@ -90,6 +90,22 @@
   .ord-btn:disabled { opacity:.35; cursor:default; }
   .ord-pos { flex:0 0 auto; min-width:22px; text-align:center; font-weight:700; color:var(--pink-deep); font-size:.82rem; }
 
+  /* Editar texto de un momento de la historia */
+  .edit-btn { position:absolute; top:8px; left:8px; background:rgba(255,255,255,.92); border:none; border-radius:50%;
+    width:32px; height:32px; cursor:pointer; font-size:.95rem; box-shadow:0 3px 8px rgba(0,0,0,.15); }
+  .edit-mode { display:none; }
+  .item.editing .view-mode { display:none; }
+  .item.editing .edit-mode { display:block; }
+  .item.editing .ord-row { display:none; }
+  .edit-mode input, .edit-mode textarea { width:100%; margin-bottom:8px; padding:9px 10px; border:1px solid var(--pink-light);
+    border-radius:10px; font-family:inherit; font-size:.9rem; background:#fff; color:var(--text); }
+  .edit-mode textarea { resize:vertical; min-height:52px; }
+  .edit-actions { display:flex; gap:8px; }
+  .edit-actions button { flex:1; border:none; border-radius:10px; padding:8px 0; cursor:pointer; font-family:inherit; font-weight:700; font-size:.88rem; }
+  .edit-save { background:var(--pink-deep); color:#fff; }
+  .edit-cancel { background:var(--pink-light); color:var(--pink-deep); }
+  .edit-msg { min-height:1em; font-size:.8rem; font-weight:600; margin-bottom:6px; }
+
   @media (max-width:600px){
     .wrap { padding:20px 14px 48px; }
     header .ttl { font-size:1.9rem; }
@@ -240,7 +256,7 @@
   </div>
 
 <script>
-  function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  function esc(s){ return (s||"").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
   function fdate(s){ try { return new Date(s).toLocaleString("es-AR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); } catch(e){ return s; } }
 
   async function login(){
@@ -367,12 +383,53 @@
     document.getElementById("timelineGrid").innerHTML = list.map(function(m, i){
       var subir = "<button class='ord-btn' title='Mover antes' onclick=\"moverHistoria("+m.id+",-1)\" "+(i===0?"disabled":"")+">◀</button>";
       var bajar = "<button class='ord-btn' title='Mover después' onclick=\"moverHistoria("+m.id+",1)\" "+(i===list.length-1?"disabled":"")+">▶</button>";
-      return "<div class='item'><button class='del' onclick=\"delItem('timeline',"+m.id+")\">🗑️</button>"+
-        "<img src='"+esc(m.image_url)+"' alt='' loading='lazy' /><div class='meta'><div class='n'>"+esc(m.title)+"</div>"+
-        (m.body?"<div class='m'>"+esc(m.body)+"</div>":"")+
-        "<div class='ord-row'>"+subir+"<span class='ord-pos'>"+(i+1)+"</span>"+bajar+"</div>"+
+      return "<div class='item' id='tl-"+m.id+"'>"+
+        "<button class='del' title='Borrar' onclick=\"delItem('timeline',"+m.id+")\">🗑️</button>"+
+        "<button class='edit-btn' title='Editar texto' onclick=\"editarHistoria("+m.id+")\">✏️</button>"+
+        "<img src='"+esc(m.image_url)+"' alt='' loading='lazy' />"+
+        "<div class='meta'>"+
+          "<div class='view-mode'><div class='n'>"+esc(m.title)+"</div>"+
+            (m.body?"<div class='m'>"+esc(m.body)+"</div>":"")+"</div>"+
+          "<div class='edit-mode'>"+
+            "<div class='edit-msg' id='tlMsg-"+m.id+"'></div>"+
+            "<input type='text' class='edit-title' id='tlTitle-"+m.id+"' maxlength='80' value='"+esc(m.title)+"' placeholder='Título' />"+
+            "<textarea class='edit-body' id='tlBody-"+m.id+"' maxlength='200' placeholder='Descripción (opcional)'>"+esc(m.body||"")+"</textarea>"+
+            "<div class='edit-actions'>"+
+              "<button class='edit-save' onclick=\"guardarHistoria("+m.id+")\">Guardar</button>"+
+              "<button class='edit-cancel' onclick=\"cancelarHistoria("+m.id+")\">Cancelar</button>"+
+            "</div>"+
+          "</div>"+
+          "<div class='ord-row'>"+subir+"<span class='ord-pos'>"+(i+1)+"</span>"+bajar+"</div>"+
         "</div></div>";
     }).join("");
+  }
+  function editarHistoria(id){
+    var card = document.getElementById("tl-"+id);
+    if (!card) return;
+    card.classList.add("editing");
+    var t = document.getElementById("tlTitle-"+id);
+    if (t) t.focus();
+  }
+  function cancelarHistoria(id){
+    renderHistoria(); // vuelve a los valores originales y sale del modo edición
+  }
+  async function guardarHistoria(id){
+    var title = document.getElementById("tlTitle-"+id).value.trim();
+    var body = document.getElementById("tlBody-"+id).value.trim();
+    var msg = document.getElementById("tlMsg-"+id);
+    if (!title){ msg.style.color="#c0566a"; msg.textContent="Falta el título"; return; }
+    msg.style.color="var(--text-soft)"; msg.textContent="Guardando…";
+    try {
+      var r = await fetch("/api/admin/timeline/"+id, {
+        method:"PATCH", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ title:title, body:body })
+      });
+      if (!r.ok) throw new Error();
+      var updated = await r.json();
+      var it = timelineItems.find(function(x){ return x.id === id; });
+      if (it){ it.title = updated.title; it.body = updated.body; }
+      renderHistoria(); // sale del modo edición mostrando el texto nuevo
+    } catch(e){ msg.style.color="#c0566a"; msg.textContent="No se pudo guardar"; }
   }
   async function moverHistoria(id, dir){
     var i = timelineItems.findIndex(function(x){ return x.id === id; });

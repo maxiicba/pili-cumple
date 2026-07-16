@@ -397,6 +397,24 @@ app.post("/api/admin/timeline", requireAdmin, upload.single("image"), async (req
   }
 });
 
+// Editar el texto (título y descripción) de un momento, sin tocar la imagen.
+app.patch("/api/admin/timeline/:id", requireAdmin, async (req, res) => {
+  try {
+    const title = (req.body.title || "").trim();
+    const body = (req.body.body || "").trim();
+    if (!title) return res.status(400).json({ error: "Falta el título" });
+    const { rows } = await pool.query(
+      "UPDATE timeline SET title=$1, body=$2 WHERE id=$3 RETURNING id, title, body, image_url",
+      [title.slice(0, 80), body.slice(0, 200), req.params.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: "No encontrado" });
+    res.json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo guardar" });
+  }
+});
+
 app.delete("/api/admin/timeline/:id", requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(
