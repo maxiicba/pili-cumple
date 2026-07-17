@@ -43,12 +43,31 @@
     border:1px solid var(--pink-light); border-radius:18px; overflow:hidden; text-align:center;
     box-shadow:0 10px 24px rgba(236,155,176,.22); transition:transform .3s ease; }
   .tl-card:hover { transform:translateY(-4px) scale(1.02); }
-  .tl-card img { width:100%; height:150px; object-fit:cover; display:block; }
+  .tl-card img { width:100%; height:150px; object-fit:cover; display:block; cursor:zoom-in; }
   .tl-card .m { font-family:'Dancing Script',cursive; color:var(--pink-deep); font-size:1.5rem; margin:8px 0 2px; }
   .tl-card .t { font-size:.85rem; color:var(--text-soft); padding:0 12px 14px; line-height:1.35; }
 
   .empty { text-align:center; color:var(--text-soft); padding:60px 20px; font-size:1.05rem; }
   .empty a { color:var(--pink-deep); font-weight:700; }
+
+  /* ====== LIGHTBOX (ver la foto en grande) ====== */
+  html.lb-open, body.lb-open { overflow:hidden; }
+  .lightbox { position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:rgba(74,32,42,.85); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+    opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s ease; cursor:zoom-out; }
+  .lightbox.open { opacity:1; visibility:visible; }
+  .lb-fig { max-width:94vw; max-height:88vh; display:flex; flex-direction:column; align-items:center; gap:14px;
+    transform:scale(.92); transition:transform .25s ease; cursor:default; }
+  .lightbox.open .lb-fig { transform:scale(1); }
+  .lb-fig img { max-width:94vw; max-height:74vh; width:auto; height:auto; object-fit:contain;
+    border-radius:16px; background:#fff; box-shadow:0 24px 60px rgba(0,0,0,.5); }
+  .lb-cap { text-align:center; max-width:560px; }
+  .lb-cap .lb-title { display:block; font-family:'Dancing Script',cursive; color:#fff; font-size:1.9rem; line-height:1.1; text-shadow:0 2px 10px rgba(0,0,0,.5); }
+  .lb-cap .lb-body { display:block; color:rgba(255,255,255,.9); font-size:.98rem; margin-top:4px; text-shadow:0 1px 6px rgba(0,0,0,.5); }
+  .lb-close { position:fixed; top:14px; right:14px; z-index:101; width:46px; height:46px; border-radius:50%; border:none;
+    background:rgba(255,255,255,.92); color:var(--pink-deep); font-size:1.4rem; line-height:1; cursor:pointer;
+    box-shadow:0 6px 16px rgba(0,0,0,.3); transition:transform .15s; }
+  .lb-close:active { transform:scale(.9); }
 
   @media (max-width:600px) {
     .top { padding:34px 16px 6px; }
@@ -83,6 +102,15 @@
     </div>
   </div>
 
+  <!-- ===== LIGHTBOX: la foto en grande ===== -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-close" id="lbClose" aria-label="Cerrar">✕</button>
+    <figure class="lb-fig">
+      <img id="lbImg" src="" alt="" />
+      <figcaption class="lb-cap"><span class="lb-title" id="lbTitle"></span><span class="lb-body" id="lbBody"></span></figcaption>
+    </figure>
+  </div>
+
 <script>
   function esc(s){ return (s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
   var firmaActual = "";
@@ -99,7 +127,8 @@
       document.getElementById("count").textContent = list.length + (list.length === 1 ? " momento" : " momentos");
       document.getElementById("timeline").innerHTML = list.map(function(m){
         return '<div class="tl-item"><span class="dot"></span><div class="tl-card">'+
-          '<img src="'+esc(m.image_url)+'" alt="" loading="lazy" />'+
+          '<img src="'+esc(m.image_url)+'" alt="'+esc(m.title)+'" loading="lazy" '+
+            'data-title="'+esc(m.title)+'" data-body="'+esc(m.body||"")+'" />'+
           '<div class="m">'+esc(m.title)+'</div>'+
           (m.body ? '<div class="t">'+esc(m.body)+'</div>' : '')+
           '</div></div>';
@@ -109,6 +138,42 @@
   cargar();
   setInterval(function(){ if (!document.hidden) cargar(); }, 15000);
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
+
+  /* ====== LIGHTBOX: tocar una foto la muestra en grande ====== */
+  var lightbox = document.getElementById("lightbox");
+  var lbImg = document.getElementById("lbImg");
+  var lbTitle = document.getElementById("lbTitle");
+  var lbBody = document.getElementById("lbBody");
+
+  function abrirLightbox(src, title, body){
+    lbImg.src = src;
+    lbImg.alt = title || "";
+    lbTitle.textContent = title || "";
+    lbBody.textContent = body || "";
+    lbBody.style.display = body ? "block" : "none";
+    lightbox.classList.add("open");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.documentElement.classList.add("lb-open");
+    document.body.classList.add("lb-open");
+  }
+  function cerrarLightbox(){
+    lightbox.classList.remove("open");
+    lightbox.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("lb-open");
+    document.body.classList.remove("lb-open");
+    lbImg.src = "";
+  }
+
+  // Delegación: funciona aunque la lista se vuelva a dibujar (polling).
+  document.getElementById("timeline").addEventListener("click", function(e){
+    var img = e.target.closest(".tl-card img");
+    if (!img) return;
+    abrirLightbox(img.src, img.dataset.title, img.dataset.body);
+  });
+  document.getElementById("lbClose").addEventListener("click", cerrarLightbox);
+  // Tocar el fondo (fuera de la figura) cierra; tocar la imagen/figura no.
+  lightbox.addEventListener("click", function(e){ if (e.target === lightbox) cerrarLightbox(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && lightbox.classList.contains("open")) cerrarLightbox(); });
 </script>
 </body>
 </html>
