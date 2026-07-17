@@ -350,6 +350,22 @@ app.post("/api/admin/gallery", requireAdmin, upload.single("image"), async (req,
   }
 });
 
+// Editar el epígrafe de una foto de la galería, sin tocar la imagen.
+app.patch("/api/admin/gallery/:id", requireAdmin, async (req, res) => {
+  try {
+    const caption = (req.body.caption || "").trim();
+    const { rows } = await pool.query(
+      "UPDATE gallery SET caption=$1 WHERE id=$2 RETURNING id, caption, image_url",
+      [caption.slice(0, 120), req.params.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: "No encontrado" });
+    res.json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "No se pudo guardar" });
+  }
+});
+
 app.delete("/api/admin/gallery/:id", requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(

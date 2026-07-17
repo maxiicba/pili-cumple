@@ -11,6 +11,7 @@
 <style>
   :root { --bg:#fdeef0; --card:#fff7f8; --text:#7a4a54; --text-soft:#a98088; --pink:#f4b8c8; --pink-deep:#ec9bb0; --pink-light:#fad6de; }
   * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { max-width:100%; overflow-x:hidden; } /* nada desborda a lo ancho en mobile */
   body { font-family:'Quicksand',sans-serif; color:var(--text); background:var(--bg); min-height:100vh; }
   h1,h2 { font-family:'Cormorant Garamond',serif; }
   .wrap { max-width:1000px; margin:0 auto; padding:24px 18px 60px; }
@@ -19,7 +20,7 @@
   .logout { background:none; border:1px solid var(--pink); color:var(--pink-deep); border-radius:30px; padding:8px 18px; font-family:inherit; font-weight:700; cursor:pointer; }
 
   /* Login */
-  .login { max-width:360px; margin:12vh auto 0; background:var(--card); border-radius:24px; padding:30px; text-align:center; box-shadow:0 12px 30px rgba(236,155,176,.25); }
+  .login { width:calc(100% - 32px); max-width:360px; margin:12vh auto 0; background:var(--card); border-radius:24px; padding:30px; text-align:center; box-shadow:0 12px 30px rgba(236,155,176,.25); }
   .login .ttl { font-family:'Dancing Script',cursive; font-size:2.4rem; color:var(--pink-deep); }
   .login input { width:100%; margin-top:18px; padding:13px 14px; border:1px solid var(--pink-light); border-radius:14px; font-family:inherit; font-size:1rem; }
   .login button { width:100%; margin-top:14px; padding:13px; border:none; border-radius:30px; background:var(--pink-deep); color:#fff; font-family:inherit; font-weight:700; font-size:1rem; cursor:pointer; }
@@ -73,10 +74,10 @@
   .adm-form { background:var(--card); border-radius:18px; padding:18px 20px; margin-bottom:18px; box-shadow:0 8px 20px rgba(236,155,176,.18); }
   .adm-form h3 { font-family:'Cormorant Garamond',serif; color:var(--pink-deep); margin-bottom:12px; font-size:1.3rem; }
   .adm-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .adm-form input[type=text], .adm-form input[type=file] { flex:1 1 180px; padding:11px 12px; border:1px solid var(--pink-light); border-radius:12px; font-family:inherit; font-size:.95rem; background:#fff; }
+  .adm-form input[type=text], .adm-form input[type=file] { flex:1 1 180px; min-width:0; max-width:100%; padding:11px 12px; border:1px solid var(--pink-light); border-radius:12px; font-family:inherit; font-size:.95rem; background:#fff; }
   .adm-opts { display:grid; gap:8px; }
   .adm-opts label { display:flex; align-items:center; gap:8px; }
-  .adm-opts label input[type=text] { flex:1; }
+  .adm-opts label input[type=text] { flex:1; min-width:0; }
   .adm-hint { color:var(--text-soft); font-size:.82rem; margin:8px 0 12px; }
   .adm-msg { margin-top:10px; min-height:1.1em; font-size:.88rem; font-weight:600; }
   .item .meta .ord { font-size:.78rem; color:var(--text-soft); }
@@ -108,17 +109,32 @@
 
   @media (max-width:600px){
     .wrap { padding:20px 14px 48px; }
-    header .ttl { font-size:1.9rem; }
-    .stats { grid-template-columns:1fr 1fr; gap:10px; }
+    header { padding-bottom:4px; }
+    header .ttl { font-size:1.7rem; }
+    .stats { grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
     .stat { padding:14px; }
     .stat .num { font-size:1.8rem; }
-    .tab { padding:8px 14px; font-size:.9rem; }
+
+    /* Pestañas: se acomodan en varias filas (todas visibles, nada se oculta) */
+    .tabs { gap:6px; margin-bottom:12px; }
+    .tab { padding:8px 13px; font-size:.88rem; white-space:nowrap; }
+
     /* La tabla de confirmaciones scrollea en horizontal en vez de desbordar */
     #v-rsvps { overflow-x:auto; -webkit-overflow-scrolling:touch; }
     #rsvpTable { min-width:520px; }
     th, td { padding:10px 11px; font-size:.86rem; }
+
     .grid { grid-template-columns:1fr 1fr; gap:10px; }
     .item img { height:130px; }
+
+    /* Formularios: los controles se apilan a lo ancho completo (nada desborda) */
+    .adm-form { padding:16px; }
+    .adm-row { flex-direction:column; align-items:stretch; gap:8px; }
+    .adm-form input[type=text], .adm-form input[type=file], .adm-row .dl-btn { flex:none; width:100%; }
+    .adm-row .dl-btn { justify-content:center; }
+
+    /* Al editar un momento, la tarjeta ocupa todo el ancho para escribir cómodo */
+    .item.editing { grid-column:1 / -1; }
   }
 </style>
 </head>
@@ -342,14 +358,56 @@
   }
 
   /* ====== GALERÍA ====== */
+  var galleryItems = [];
   async function cargarGaleria(){
-    var r = await fetch("/api/gallery"); if(!r.ok) return; var list = await r.json();
+    var r = await fetch("/api/gallery"); if(!r.ok) return;
+    galleryItems = await r.json();
+    renderGaleria();
+  }
+  function renderGaleria(){
+    var list = galleryItems;
     document.getElementById("galleryEmpty").style.display = list.length ? "none" : "block";
     document.getElementById("galleryGrid").innerHTML = list.map(function(p){
-      return "<div class='item'><button class='del' onclick=\"delItem('gallery',"+p.id+")\">🗑️</button>"+
-        "<img src='"+esc(p.image_url)+"' alt='' loading='lazy' /><div class='meta'>"+
-        (p.caption?"<div class='c'>"+esc(p.caption)+"</div>":"<div class='c'>—</div>")+"</div></div>";
+      return "<div class='item' id='gl-"+p.id+"'>"+
+        "<button class='del' title='Borrar' onclick=\"delItem('gallery',"+p.id+")\">🗑️</button>"+
+        "<button class='edit-btn' title='Editar epígrafe' onclick=\"editarGaleria("+p.id+")\">✏️</button>"+
+        "<img src='"+esc(p.image_url)+"' alt='' loading='lazy' />"+
+        "<div class='meta'>"+
+          "<div class='view-mode'><div class='c'>"+(p.caption?esc(p.caption):"—")+"</div></div>"+
+          "<div class='edit-mode'>"+
+            "<div class='edit-msg' id='glMsg-"+p.id+"'></div>"+
+            "<input type='text' class='edit-title' id='glCap-"+p.id+"' maxlength='120' value='"+esc(p.caption||"")+"' placeholder='Epígrafe (opcional)' />"+
+            "<div class='edit-actions'>"+
+              "<button class='edit-save' onclick=\"guardarGaleria("+p.id+")\">Guardar</button>"+
+              "<button class='edit-cancel' onclick=\"cancelarGaleria("+p.id+")\">Cancelar</button>"+
+            "</div>"+
+          "</div>"+
+        "</div></div>";
     }).join("");
+  }
+  function editarGaleria(id){
+    var card = document.getElementById("gl-"+id);
+    if (!card) return;
+    card.classList.add("editing");
+    var i = document.getElementById("glCap-"+id);
+    if (i) i.focus();
+  }
+  function cancelarGaleria(id){ renderGaleria(); }
+  async function guardarGaleria(id){
+    var caption = document.getElementById("glCap-"+id).value.trim();
+    var msg = document.getElementById("glMsg-"+id);
+    msg.style.color="var(--text-soft)"; msg.textContent="Guardando…";
+    try {
+      var r = await fetch("/api/admin/gallery/"+id, {
+        method:"PATCH", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ caption: caption })
+      });
+      if (!r.ok) throw new Error();
+      var updated = await r.json();
+      var it = galleryItems.find(function(x){ return x.id === id; });
+      if (it) it.caption = updated.caption;
+      renderGaleria();
+    } catch(e){ msg.style.color="#c0566a"; msg.textContent="No se pudo guardar"; }
   }
   async function subirGaleria(e){
     e.preventDefault();
