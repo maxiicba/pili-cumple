@@ -80,6 +80,7 @@
     .nav a { font-size:.85rem; padding:8px 14px; }
   }
 </style>
+<link rel="stylesheet" href="/player.css" />
 </head>
 <body>
   <div class="top">
@@ -175,5 +176,6 @@
   lightbox.addEventListener("click", function(e){ if (e.target === lightbox) cerrarLightbox(); });
   document.addEventListener("keydown", function(e){ if (e.key === "Escape" && lightbox.classList.contains("open")) cerrarLightbox(); });
 </script>
+<script src="/player.js" defer></script>
 </body>
 </html>

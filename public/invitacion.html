@@ -737,6 +737,13 @@
     else musicBtn.classList.remove("playing");
   }
 
+  // Guardamos qué tema y segundo va sonando para que en las otras páginas
+  // (historia, fotos, etc.) la música siga desde donde estaba.
+  var STATE_KEY = "pili_music_state";
+  function guardarEstado(mode, idx, time, playing) {
+    try { localStorage.setItem(STATE_KEY, JSON.stringify({ mode: mode, idx: idx, time: time || 0, playing: !!playing })); } catch (e) {}
+  }
+
   // "Puente" para arrancar la música desde el gesto de abrir la portada.
   // El modo activo (playlist o mp3) registra acá su función de arranque.
   var startRequested = false;   // el usuario ya abrió la portada
@@ -887,9 +894,14 @@
       window.addEventListener("scroll", arrancar, { passive: true });
     }
 
+    function persistir() {
+      var t = 0; try { t = (ytPlayer && ytPlayer.getCurrentTime) ? ytPlayer.getCurrentTime() : 0; } catch (e) {}
+      guardarEstado("yt", curIdx, t, isPlaying);
+    }
+
     function onState(e) {
-      if (e.data === YT.PlayerState.PLAYING) { isPlaying = true; errStreak = 0; refreshUI(); }
-      else if (e.data === YT.PlayerState.PAUSED) { isPlaying = false; refreshUI(); }
+      if (e.data === YT.PlayerState.PLAYING) { isPlaying = true; errStreak = 0; refreshUI(); persistir(); }
+      else if (e.data === YT.PlayerState.PAUSED) { isPlaying = false; refreshUI(); persistir(); }
       else if (e.data === YT.PlayerState.ENDED) { curIdx = (curIdx + 1) % songs.length; refreshUI(); playCurrent(); }
     }
 
@@ -899,6 +911,11 @@
       if (errStreak >= songs.length) { isPlaying = false; refreshUI(); return; }
       curIdx = (curIdx + 1) % songs.length; refreshUI(); playCurrent();
     }
+
+    // Guardamos el progreso para que otras páginas retomen donde iba.
+    setInterval(function () { if (isPlaying) persistir(); }, 1000);
+    window.addEventListener("pagehide", persistir);
+    document.addEventListener("visibilitychange", function () { if (document.hidden) persistir(); });
   }
 
   /* ---- Modo B: música de fondo mp3 (si no hay canciones cargadas) ---- */
@@ -944,6 +961,12 @@
       if (bgm.paused) { bgm.play(); setPlayingUI(true); recordarPreferencia(false); }
       else { bgm.pause(); setPlayingUI(false); recordarPreferencia(true); }
     });
+
+    // Guardamos el progreso para que otras páginas retomen donde iba.
+    function persistir() { guardarEstado("mp3", 0, bgm.currentTime || 0, !bgm.paused); }
+    setInterval(function () { if (!bgm.paused) persistir(); }, 1000);
+    window.addEventListener("pagehide", persistir);
+    document.addEventListener("visibilitychange", function () { if (document.hidden) persistir(); });
   }
 
   /* ====== BOTÓN FLOTANTE: CONFIRMAR ASISTENCIA ====== */

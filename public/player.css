@@ -1,0 +1,60 @@
+/* Reproductor de música compartido (se usa en todas las páginas del sitio).
+   Colores fijos (no dependen de las variables de cada página). */
+
+.pili-music-btn {
+  position: fixed; top: 16px; right: 16px; z-index: 40;
+  width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255,255,255,.85); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  box-shadow: 0 8px 20px rgba(236,155,176,.4); color: #ec9bb0;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .2s;
+}
+.pili-music-btn:active { transform: scale(.92); }
+.pili-music-btn svg { width: 24px; height: 24px; }
+.pili-music-btn.playing .disc { animation: piliSpin 3s linear infinite; transform-origin: center; }
+@keyframes piliSpin { to { transform: rotate(360deg); } }
+
+/* Panel del reproductor. Cerrado = fuera de pantalla (no display:none) para que
+   YouTube siga sonando aunque el panel esté oculto. */
+.pili-player {
+  position: fixed; top: 74px; right: 16px; z-index: 39;
+  width: min(300px, calc(100vw - 32px));
+  background: rgba(255,255,255,.96); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-radius: 20px; box-shadow: 0 16px 40px rgba(236,155,176,.5);
+  padding: 14px; color: #8a5a64;
+  transform: translateX(130%); opacity: 0; pointer-events: none;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s;
+}
+.pili-player.open { transform: translateX(0); opacity: 1; pointer-events: auto; }
+.pili-player-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.pili-player-now { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.pili-player-title { font-weight: 700; color: #ec9bb0; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pili-player-close { margin-left: auto; background: none; border: none; color: #b08a92; font-size: 1.1rem; cursor: pointer; line-height: 1; padding: 4px; }
+.pili-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; flex: 0 0 auto; }
+.pili-eq i { width: 3px; height: 100%; background: #ec9bb0; border-radius: 2px; transform-origin: bottom; animation: piliEq 1s ease-in-out infinite; }
+.pili-eq i:nth-child(2) { animation-delay: .25s; }
+.pili-eq i:nth-child(3) { animation-delay: .5s; }
+.pili-player.paused .pili-eq i { animation-play-state: paused; }
+@keyframes piliEq { 0%,100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+.pili-player-video { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 10px; }
+.pili-player-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.pili-player-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 10px; }
+.pili-player-controls button {
+  background: #fad6de; border: none; color: #ec9bb0; cursor: pointer;
+  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; transition: transform .15s, background .15s;
+}
+.pili-player-controls button:hover { background: #f4b8c8; }
+.pili-player-controls button:active { transform: scale(.9); }
+.pili-player-controls .p-play { width: 50px; height: 50px; background: #ec9bb0; color: #fff; font-size: 1.2rem; }
+.pili-player-controls .p-play:hover { background: #ec9bb0; filter: brightness(1.05); }
+.pili-player-list { list-style: none; margin: 0; padding: 0; max-height: 168px; overflow-y: auto; }
+.pili-player-list li {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; cursor: pointer;
+  font-size: .88rem; color: #8a5a64; transition: background .15s;
+}
+.pili-player-list li:hover { background: #fad6de; }
+.pili-player-list li.active { background: #fad6de; font-weight: 700; color: #ec9bb0; }
+.pili-player-list li .idx { flex: 0 0 auto; width: 18px; text-align: center; color: #b08a92; font-size: .8rem; }
+.pili-player-list li.active .idx { color: #ec9bb0; }
+.pili-player-list li .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
