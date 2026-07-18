@@ -10,7 +10,14 @@ const QRCode = require("qrcode");
 
 const { pool, init } = require("./db");
 const r2 = require("./r2");
-const heicConvert = require("heic-convert");
+// heic-convert se carga de forma perezosa (solo cuando alguien sube un HEIC),
+// así no pesa ni arriesga nada en el arranque del servidor. Ver cargarHeic().
+
+// Red de seguridad: un error inesperado (en una petición, un stream, etc.) NO debe
+// tumbar todo el servidor. Node, por defecto, corta el proceso ante un uncaughtException;
+// acá lo evitamos y lo dejamos logueado para poder diagnosticarlo.
+process.on("uncaughtException", (err) => { console.error("[uncaughtException]", err); });
+process.on("unhandledRejection", (err) => { console.error("[unhandledRejection]", err); });
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "pilar2026";
@@ -83,10 +90,21 @@ function esHeic(file) {
   if (mt.indexOf("heic") !== -1 || mt.indexOf("heif") !== -1) return true;
   return /\.(heic|heif)$/i.test(file.originalname || "");
 }
+// Carga heic-convert solo cuando hace falta y sin tumbar el server si falla.
+let _heic; // undefined = sin intentar; null = no disponible; función = OK
+function cargarHeic() {
+  if (_heic === undefined) {
+    try { _heic = require("heic-convert"); }
+    catch (e) { _heic = null; console.error("[heic] no se pudo cargar heic-convert:", e.message); }
+  }
+  return _heic;
+}
 // Devuelve { buffer, mimetype } listo para R2: si es HEIC lo pasa a JPEG.
 async function prepararImagen(file) {
   if (esHeic(file)) {
-    const jpeg = await heicConvert({ buffer: file.buffer, format: "JPEG", quality: 0.9 });
+    const heic = cargarHeic();
+    if (!heic) throw new Error("Este servidor no puede procesar HEIC en este momento");
+    const jpeg = await heic({ buffer: file.buffer, format: "JPEG", quality: 0.9 });
     return { buffer: Buffer.from(jpeg), mimetype: "image/jpeg" };
   }
   return { buffer: file.buffer, mimetype: file.mimetype };
