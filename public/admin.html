@@ -195,7 +195,7 @@
       <form class="adm-form" id="galleryForm" onsubmit="return subirGaleria(event)">
         <h3>Agregar foto a la galería</h3>
         <div class="adm-row">
-          <input type="file" id="galleryFile" accept="image/*" required />
+          <input type="file" id="galleryFile" accept="image/*,.heic,.heif" required />
           <input type="text" id="galleryCaption" placeholder="Epígrafe (opcional)" />
           <button class="dl-btn" type="submit">＋ Agregar</button>
         </div>
@@ -209,7 +209,7 @@
       <form class="adm-form" id="timelineForm" onsubmit="return subirHistoria(event)">
         <h3>Agregar momento a la historia</h3>
         <div class="adm-row">
-          <input type="file" id="timelineFile" accept="image/*" required />
+          <input type="file" id="timelineFile" accept="image/*,.heic,.heif" required />
           <input type="text" id="timelineTitle" placeholder="Título (ej: Mi primera sonrisa)" required />
           <input type="text" id="timelineBody" placeholder="Descripción (opcional)" />
           <button class="dl-btn" type="submit">＋ Agregar</button>

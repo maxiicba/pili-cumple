@@ -10,6 +10,7 @@ const QRCode = require("qrcode");
 
 const { pool, init } = require("./db");
 const r2 = require("./r2");
+const heicConvert = require("heic-convert");
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "pilar2026";
@@ -64,18 +65,38 @@ const writeLimiter = rateLimit({
 
 // Subida en memoria, solo imágenes de formatos seguros, hasta 10 MB.
 // Whitelist explícita: NO se permite SVG (puede contener JavaScript embebido).
+// HEIC/HEIF (formato por defecto del iPhone) se acepta y luego se convierte a JPEG.
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/gif",
+  "image/heic",
+  "image/heif",
+  "image/heic-sequence",
+  "image/heif-sequence",
 ]);
+// Algunos navegadores mandan el HEIC con mimetype genérico (application/octet-stream),
+// así que también lo reconocemos por la extensión del nombre.
+function esHeic(file) {
+  const mt = (file.mimetype || "").toLowerCase();
+  if (mt.indexOf("heic") !== -1 || mt.indexOf("heif") !== -1) return true;
+  return /\.(heic|heif)$/i.test(file.originalname || "");
+}
+// Devuelve { buffer, mimetype } listo para R2: si es HEIC lo pasa a JPEG.
+async function prepararImagen(file) {
+  if (esHeic(file)) {
+    const jpeg = await heicConvert({ buffer: file.buffer, format: "JPEG", quality: 0.9 });
+    return { buffer: Buffer.from(jpeg), mimetype: "image/jpeg" };
+  }
+  return { buffer: file.buffer, mimetype: file.mimetype };
+}
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024, files: 1 },
   fileFilter: (req, file, cb) => {
-    if (ALLOWED_IMAGE_TYPES.has(file.mimetype)) cb(null, true);
-    else cb(new Error("Formato no permitido. Solo JPG, PNG, WebP o GIF."));
+    if (ALLOWED_IMAGE_TYPES.has((file.mimetype || "").toLowerCase()) || esHeic(file)) cb(null, true);
+    else cb(new Error("Formato no permitido. Solo JPG, PNG, WebP, GIF o HEIC."));
   },
 });
 
@@ -164,7 +185,8 @@ app.post("/api/photos", uploadLimiter, upload.single("image"), async (req, res) 
     if (!r2.isConfigured)
       return res.status(503).json({ error: "Almacenamiento de imágenes no configurado" });
 
-    const { key, url } = await r2.uploadImage(req.file.buffer, req.file.mimetype);
+    const img = await prepararImagen(req.file);
+    const { key, url } = await r2.uploadImage(img.buffer, img.mimetype);
     const { rows } = await pool.query(
       "INSERT INTO photos (name, caption, image_url, image_key) VALUES ($1,$2,$3,$4) RETURNING id, name, caption, image_url, created_at",
       [name.slice(0, 80), caption.slice(0, 200), url, key]
@@ -338,7 +360,8 @@ app.post("/api/admin/gallery", requireAdmin, upload.single("image"), async (req,
     if (!req.file) return res.status(400).json({ error: "Falta la imagen" });
     if (!r2.isConfigured)
       return res.status(503).json({ error: "Almacenamiento de imágenes no configurado" });
-    const { key, url } = await r2.uploadImage(req.file.buffer, req.file.mimetype);
+    const img = await prepararImagen(req.file);
+    const { key, url } = await r2.uploadImage(img.buffer, img.mimetype);
     const { rows } = await pool.query(
       "INSERT INTO gallery (image_url, image_key, caption, position) VALUES ($1,$2,$3, COALESCE((SELECT MAX(position) FROM gallery),0)+1) RETURNING id, caption, image_url",
       [url, key, caption.slice(0, 120)]
@@ -401,7 +424,8 @@ app.post("/api/admin/timeline", requireAdmin, upload.single("image"), async (req
     if (!req.file) return res.status(400).json({ error: "Falta la imagen" });
     if (!r2.isConfigured)
       return res.status(503).json({ error: "Almacenamiento de imágenes no configurado" });
-    const { key, url } = await r2.uploadImage(req.file.buffer, req.file.mimetype);
+    const img = await prepararImagen(req.file);
+    const { key, url } = await r2.uploadImage(img.buffer, img.mimetype);
     const { rows } = await pool.query(
       "INSERT INTO timeline (image_url, image_key, title, body, position) VALUES ($1,$2,$3,$4, COALESCE((SELECT MAX(position) FROM timeline),0)+1) RETURNING id, title, body, image_url",
       [url, key, title.slice(0, 80), body.slice(0, 200)]
